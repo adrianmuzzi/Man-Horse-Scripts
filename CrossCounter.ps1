@@ -19,9 +19,8 @@ if(-not (Get-Module Microsoft.Graph -ListAvailable)){
 # ==============================================================================
 function GeneratePassword {
     $num1 = Get-Random -Maximum 10000
-    $word1 = "Happy","Ability","Exact","Coral","Core","Cello","Correct","Play","Vegetable","Couch","Country","Couple","Course","SOUP","cover","Stable","Shoe" | Get-Random
     $letterList = "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","!","?","$","1","2","3","4","5","6","7","8","9"
-    $passArr = $num1, $word1, ($letterList | Get-Random), ($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random)| Get-Random -Shuffle
+    $passArr = $num1, ($letterList | Get-Random), ($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random) | Get-Random -Shuffle
     $newPassword = [String]::Join("",$passArr)
     return $newPassword
 }
@@ -106,7 +105,7 @@ There appears to be a bug?? where attributes like 'CompanyName' and 'PostalCode'
 'DisplayName, GivenName, MobilePhone, etc.
 Also, edits take a few moments to tick-over, so while it may appear like changes are not being made- be assured that they are. 
 #>
-        Write-Host "`n
+        Write-Host "
 [1.] Display Name             $($User.DisplayName)
 [2.] First Name               $($User.GivenName)
 [3.] Last Name                $($User.Surname)
@@ -176,11 +175,129 @@ Also, edits take a few moments to tick-over, so while it may appear like changes
                 $editMade = Read-Host -Prompt "What would you like to change the company name to?"
                 Update-MgUser -UserId $userID -CompanyName $editMade; Break
             }
-            12 {
-
+            12 { # Groups
+                Do {
+                    Get-MgUserMemberOf -UserID
+                } Until ($chosenOption -eq 'q')
             }
         }
     }Until($chosenOption -eq 'q')
+}
+
+function CrossCounterEditAll {
+    Do {
+        Write-Host "`n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
+        Write-Host " - WARNING - "
+        Write-Host "EDITING ** ALL ** USERS IN TENANT"
+        Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
+        Write-Host "`n
+[1.] Company Name            $($User.CompanyName)`n
+[2.] Department               $($User.Department)`n
+[3.] Street address           $($User.StreetAddress)`n
+[4.] City                     $($User.City)`n
+[5.] Postal Code              $($User.PostalCode)`n
+[6.] Country                 $($User.Country)`n
+"
+        $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
+        switch ($chosenOption) {
+            1 {
+                $i = 0
+                $editMade = Read-Host -Prompt "Change company name for ALL users to"
+                Do{
+                    Try{
+                        $User = $userList[($i)]
+                        $userID = $User.ID
+                        Update-MgUser -UserId $userID -CompanyName $editMade
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
+                    }Catch{
+                        Write-Host "$($i). ERROR"
+                    }
+                    $i++
+                }Until($i -eq ($userCount))
+            Break 
+            }
+            2 {
+                $i = 0
+                $editMade = Read-Host -Prompt "Change ALL users' Department to"
+                Do{
+                    Try{
+                        $User = $userList[($i)]
+                        $userID = $User.ID
+                        Update-MgUser -UserId $userID -Department $editMade
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
+                    }Catch{
+                        Write-Host "$($i). ERROR"
+                    }
+                    $i++
+                }Until($i -eq ($userCount))
+            Break
+            }
+            3 {
+                $i = 0
+                $editMade = Read-Host -Prompt "Change ALL users' Street Address to"
+                Do{
+                    Try{
+                        $User = $userList[($i)]
+                        $userID = $User.ID
+                        Update-MgUser -UserId $userID -StreetAddress $editMade
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
+                    }Catch{
+                        Write-Host "$($i). ERROR"
+                    }
+                    $i++
+                }Until($i -eq ($userCount))
+            Break
+            }
+            4 {
+                $i = 0
+                $editMade = Read-Host -Prompt "Change ALL users' City to"
+                Do{
+                    Try{
+                        $User = $userList[($i)]
+                        $userID = $User.ID
+                        Update-MgUser -UserId $userID -City $editMade
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
+                    }Catch{
+                        Write-Host "$($i). ERROR"
+                    }
+                    $i++
+                }Until($i -eq ($userCount))
+            Break
+            }
+            5 {
+                $i = 0
+                $editMade = Read-Host -Prompt "Change ALL users' Postal Code to"
+                Do{
+                    Try{
+                        $User = $userList[($i)]
+                        $userID = $User.ID
+                        Update-MgUser -UserId $userID -PostalCode $editMade
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
+                    }Catch{
+                        Write-Host "$($i). ERROR"
+                    }
+                    $i++
+                }Until($i -eq ($userCount))
+            Break
+            }
+            6 {
+                $i = 0
+                $editMade = Read-Host -Prompt "Change ALL users' Country to"
+                Do{
+                    Try{
+                        $User = $userList[($i)]
+                        $userID = $User.ID
+                        Update-MgUser -UserId $userID -Country $editMade
+                        Write-Host "$($i+1). editing $($userList[$i].DisplayName) - Updated"
+                    }Catch{
+                        Write-Host "$($i). ERROR"
+                    }
+                    $i++
+                }Until($i -eq ($userCount))
+            Break
+            }
+        }
+    } Until ($chosenOption -eq 'q')
 }
 
 #================================================================================
@@ -192,11 +309,12 @@ Connect-MgGraph -Scopes "User.Read.All","Group.ReadWrite.All","Directory.Read.Al
 Write-Host ".`n..`n...`n....`n.....`n....`n...`n..`n."
 
 #----------------------------------------------------------------------------------
+#                           FIRST STARTUP
+#----------------------------------------------------------------------------------
 # List all the users in the tenant
-
 $userList = CrossCounterListUsers
 
-# Prompt for ID of user
+# MAIN MENU ++++++++++++++++++++++++++++++++++++++++++++++++++++++|
 Do {
     $User = ""
     $userID = ""
@@ -210,100 +328,11 @@ Do {
 |   off    - User Offboarding                                    |
 |   q      - sign out & exit                                     |
 |----------------------------------------------------------------|`n"
-
     switch ($userInput1) {
 
 #If you type 'all' as the user ID, then we want to edit *all* of the users in the tenancy at once.
         'all' {
-            Do {
-                Write-Host "`n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
-                Write-Host " - WARNING - "
-                Write-Host "EDITING ** ALL ** USERS IN TENANT"
-                Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
-                Write-Host "`n
-[1.] Company Name            $($User.CompanyName)`n
-[2.] Department               $($User.Department)`n
-[3.] Street address           $($User.StreetAddress)`n
-[4.] City                     $($User.City)`n
-[5.] Postal Code              $($User.PostalCode)`n
-[6.] Country                 $($User.Country)`n
-"
-                $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
-                switch ($chosenOption) {
-                    1 {
-                        $i = 0
-                        $editMade = Read-Host -Prompt "Change company name for ALL users to"
-                        Do{
-                            $User = $userList[($i)]
-                            $userID = $User.ID
-                            Update-MgUser -UserId $userID -CompanyName $editMade
-                            Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
-                            $i++
-                        }Until($i -eq ($userCount))
-                    Break 
-                    }
-                    2 {
-                        $i = 0
-                        $editMade = Read-Host -Prompt "Change ALL users' Department to"
-                        Do{
-                            $User = $userList[($i)]
-                            $userID = $User.ID
-                            Update-MgUser -UserId $userID -Department $editMade
-                            Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
-                            $i++
-                        }Until($i -eq ($userCount))
-                    Break
-                    }
-                    3 {
-                        $i = 0
-                        $editMade = Read-Host -Prompt "Change ALL users' Street Address to"
-                        Do{
-                            $User = $userList[($i)]
-                            $userID = $User.ID
-                            Update-MgUser -UserId $userID -StreetAddress $editMade
-                            Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
-                            $i++
-                        }Until($i -eq ($userCount))
-                    Break
-                    }
-                    4 {
-                        $i = 0
-                        $editMade = Read-Host -Prompt "Change ALL users' City to"
-                        Do{
-                            $User = $userList[($i)]
-                            $userID = $User.ID
-                            Update-MgUser -UserId $userID -City $editMade
-                            Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
-                            $i++
-                        }Until($i -eq ($userCount))
-                    Break
-                    }
-                    5 {
-                        $i = 0
-                        $editMade = Read-Host -Prompt "Change ALL users' Postal Code to"
-                        Do{
-                            $User = $userList[($i)]
-                            $userID = $User.ID
-                            Update-MgUser -UserId $userID -PostalCode $editMade
-                            Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
-                            $i++
-                        }Until($i -eq ($userCount))
-                    Break
-                    }
-                    6 {
-                        $i = 0
-                        $editMade = Read-Host -Prompt "Change ALL users' Country to"
-                        Do{
-                            $User = $userList[($i)]
-                            $userID = $User.ID
-                            Update-MgUser -UserId $userID -Country $editMade
-                            Write-Host "$($i+1). editing $($userList[$i].DisplayName) - Updated"
-                            $i++
-                        }Until($i -eq ($userCount))
-                    Break
-                    }
-                }
-            } Until ($chosenOption -eq 'q')
+            CrossCounterEditAll
         Break
         }
 
@@ -326,7 +355,7 @@ Do {
                             $chosenOption = Read-Host -Prompt "
 |=============================================================================================|
 |                                   GROUP MENU                                                |
-| Enter the number listed next to the $($groupSelected.DisplayName) member to edit that user  |
+| Enter the number listed next to the '$($groupSelected.DisplayName)' member to edit that user
 | add       - Add a user to this group                                                        |
 | remove    - Remove a user from this group                                                   |
 | q         - go back                                                                         |
@@ -441,7 +470,7 @@ Do {
             Disconnect-MgGraph
             exit
         }
-
+# catch for blank input
         "" {
             Write-Host "Please input something..."
             break
@@ -454,24 +483,24 @@ Do {
             Try {
                 $userList = Get-MgUser -All -Count userCount -ConsistencyLevel eventual -OrderBy DisplayName
                 $User = Get-MgUser -UserId $userID
+                CrossCounterEditUser -userID $userID
             } Catch {
                 Write-Host "Invalid Input - No user found listed under that number..."
                 Write-Host ""
-            }
-            # Only show the next menu if requested user exists
-            if ($User) {
-                CrossCounterEditUser -userID $userID
-            }else{
-                Write-Host "`nInvalid Input - Choose a number`n"
             }
         }
     }
 #If 'q' is entered instead of a user ID... We outta here
 }Until(($userInput1-eq 'q'))
-    
 # 
 # If we've made it out of the Do{}Until() loops somehow- then disconnect and exit gracefully.
 #
 Write-Host "Signing out and exiting..."
 Disconnect-MgGraph
 exit
+#########################################################################################################################################
+#
+#
+#
+#                                                           NOTHING BELOW THIS LINE
+##########################################################################################################################################
