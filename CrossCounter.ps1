@@ -17,11 +17,15 @@ if(-not (Get-Module Microsoft.Graph -ListAvailable)){
 # ==============================================================================
 #                             DEFINE FUNCTIONS
 # ==============================================================================
+
 function GeneratePassword {
+#This is a quick and dirty method to be taken as an EXAMPLE. I'm not making any guarantees on the data security of accounts using passwords generated in this way.
+#The mere fact this is public on github means it is effectivley 'compromised'. If you want to be safe, makechang
     $num1 = Get-Random -Maximum 10000
     $letterList = "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","!","?","$","1","2","3","4","5","6","7","8","9"
-    $passArr = $num1, ($letterList | Get-Random), ($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random) | Get-Random -Shuffle
+    $passArr = $num1, ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random),($letterList.ToUpper() | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random) | Get-Random -Shuffle
     $newPassword = [String]::Join("",$passArr)
+#Seriously... I just typed this up, slapped it on the booty, and said 'Bam! Good-enough!'. You should probably make some *changes* to the function at the very-least.
     return $newPassword
 }
 
@@ -36,11 +40,12 @@ function CrossCounterListUsers {
     Do{
         Write-Host "$($i+1). $($uL[$i].DisplayName)       --- ---       $($uL[$i].Mail)"
         $i++
-    }Until($i -eq ($userCount))
+    }Until($i -ge ($userCount))
     Write-Host "`n$userCount users - Listed alphabetically by display name"
     Write-Host "Press < ALT + SPACE , E , F > to search within Powershell console"
     return $uL
 }
+
 
 function CrossCounterListGroups {
     Write-Host "`n"
@@ -51,11 +56,11 @@ function CrossCounterListGroups {
     Write-Host "================================================================================"
     Write-Host "`n"
     $i = 0
-    $gL = Get-MgGroup -All -Count groupCount -ConsistencyLevel eventual -OrderBy DisplayName
+    $gL = Get-MgGroup -All -Count groupCount -ConsistencyLevel eventual -OrderBy DisplayName | Sort-Object -Property @{Expression = "DisplayName"}
     Do{
         Write-Host "$($i+1). $($gL[$i].DisplayName) --- $($gL[$i].Description)"
         $i++
-    }Until($i -eq ($groupCount))
+    }Until($i -ge ($groupCount))
     Write-Host "`n$groupCount groups - Listed alphabetically"
     Write-Host "Press < ALT + SPACE , E , F > to search within Powershell console"
     return $gL
@@ -65,19 +70,20 @@ function CrossCounterListMembers {
     param (
         $GroupId
     )
+    $groupSelected = Get-MgGroup -GroupId $groupID
     Write-Host "================================================================================================="
     Write-Host "Editing $($groupSelected.DisplayName)"
     Write-Host "(Note changes may take a minute or two to cache)"
     Write-Host "=================================================================================================`n"
     $i = 0
-    #This gets an array that only contains the user IDs of the group members (as well as other inconsequential info)
+    #The objects in this array only contain the user IDs of the group members (as well as other inconsequential info)
     $mIdL = Get-MgGroupMember -GroupId $GroupId -Count memberCount -ConsistencyLevel eventual
     $mL = [Object[]]::new($memberCount)
     #First we convert these extracted userIds into user objects
     Do {
         $mL[$i] = (Get-MgUser -UserId ($mIdL[$i].Id))
         $i++
-    } Until($i -eq $memberCount)
+    } Until($i -ge $memberCount)
     #now we re-arrange the array of user objects alphabetically by display name
     $mL = $mL | Sort-Object -Property @{Expression = "DisplayName"}
     $i = 0
@@ -85,9 +91,110 @@ function CrossCounterListMembers {
     Do{
         Write-Host "$($i+1). $(($mL[$i]).DisplayName)"
         $i++
-    }Until($i -eq ($memberCount))
+    }Until($i -ge ($memberCount))
     Write-Host "`n$memberCount members of $($groupSelected.DisplayName) - Listed alphabetically..."
     return $mL
+}
+
+function CrossCounterAddMember {
+    param (
+        $groupID
+    )
+    Do {
+        $groupSelected = Get-MgGroup -GroupId $groupID
+        Write-Host "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+        Write-Host " ADDING members to $($groupSelected.DisplayName)"
+        Write-Host " (Note changes may take a minute or two to cache)"
+        Write-Host "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    #get the ids of all the members of the group
+        $mIdL = Get-MgGroupMember -GroupId $groupID -Count memberCount -ConsistencyLevel eventual
+        $mL = $mIdL.Id
+    #get the ids of all the users in tenant
+        $uL = (Get-MgUser -Count userCount -ConsistencyLevel eventual).ID
+    #make a list of the user id for users not in both lists
+        $pm = $uL | Where-Object { $_ -notin $mL }
+        $potentialMembers = [Object[]]::new($pm.Length)
+        $i = 0
+    #convert these extracted user ids into user objects
+        Do {
+            $potentialMembers[$i] = (Get-MgUser -UserId ($pm[$i]))
+            $i++
+        } Until($i -ge $pm.Length)
+    #now we re-arrange the array of user objects alphabetically by display name
+        $potentialMembers = $potentialMembers | Sort-Object -Property @{Expression = "DisplayName"}
+        $i = 0
+    #and write the alphabetical list of users
+        Do{
+            Write-Host "$($i+1). $(($potentialMembers[$i]).DisplayName)"
+            $i++
+        }Until($i -ge ($potentialMembers.Length))
+        $chosenUser = ""
+    #pick a user and they get added to the group
+            $chosenUser = Read-Host -Prompt "`nEnter the number listed next to the user you want to add to the '$($groupSelected.DisplayName)' group (or 'q' to go back)`n"
+            if (($chosenUser -ne 'q')){
+                $member = $potentialMembers[$chosenUser-1]
+                if($member){
+                    Write-Host "Adding $($member.DisplayName) to $($groupSelected.DisplayName)..."
+                    Try {
+                        New-MgGroupMember -GroupId $groupID -DirectoryObjectId $member.ID
+                        Write-Host "SUCCESS! Added $($member.DisplayName) to $($groupSelected.DisplayName)"
+                    }Catch{
+                        Write-Host "FAILED to add $($member.DisplayName) to $($groupSelected.DisplayName)"
+                    }
+                }else{
+                    Write-Host "Invalid Input - Could not find user..."
+                }
+            }
+    } Until ($chosenUser -eq "q")
+}
+
+function CrossCounterRemoveMember {
+    param (
+        $GroupId
+    )
+    $groupSelected = Get-MgGroup -GroupId $groupID
+    Write-Host "------------------------------------------------------------------------------------------------"
+    Write-Host " REMOVING members from $($groupSelected.DisplayName)"
+    Write-Host " (Note changes may take a minute or two to cache)"
+    Write-Host "------------------------------------------------------------------------------------------------`n"
+    $i = 0
+    #The objects in this array only contain the user IDs of the group members (as well as other inconsequential info)
+    $mIdL = Get-MgGroupMember -GroupId $GroupId -Count memberCount -ConsistencyLevel eventual
+    $mL = [Object[]]::new($memberCount)
+    #First we convert these extracted userIds into user objects
+    Do {
+        $mL[$i] = (Get-MgUser -UserId ($mIdL[$i].Id))
+        $i++
+    } Until($i -ge $memberCount)
+    #now we re-arrange the array of user objects alphabetically by display name
+    $mL = $mL | Sort-Object -Property @{Expression = "DisplayName"}
+    $i = 0
+    #and write the alphabetical list of users
+    Do{
+        Write-Host "$($i+1). $(($mL[$i]).DisplayName)"
+        $i++
+    }Until($i -ge ($memberCount))
+    Write-Host "`n$memberCount members of $($groupSelected.DisplayName) - Listed alphabetically..."
+#pick a user and they get removed from the group
+    Do {
+        $chosenUser = Read-Host -Prompt "`nEnter the number listed next to the user you want to remove from the '$($groupSelected.DisplayName)' group (or 'q' to go back)`n"
+        if (($chosenUser -ne 'q')){
+            $member = $mL[$chosenUser-1]
+            if($member){
+                Write-Host "Removing $($member.DisplayName) from $($groupSelected.DisplayName)..."
+                Try {
+                    # need this for the graph query below; it needs a $ref tacked on at the end. By setting the variable to '$ref' it does not get interpreted as a variable.
+                    Remove-MgGroupMemberByRef -GroupId $groupId -DirectoryObjectId $member.ID
+                    Write-Host "SUCCESS!"
+                }Catch{
+                    Write-Host "...`nFAILED! to remove $($member.DisplayName) from $($groupSelected.DisplayName)"
+                    Write-Host $_
+                }
+            }else{
+                Write-Host "Invalid Input - Could not find user..."
+            }
+        }
+    }Until ($chosenUser -eq "q")
 }
 
 function CrossCounterEditUser {
@@ -106,18 +213,20 @@ There appears to be a bug?? where attributes like 'CompanyName' and 'PostalCode'
 Also, edits take a few moments to tick-over, so while it may appear like changes are not being made- be assured that they are. 
 #>
         Write-Host "
-[1.] Display Name             $($User.DisplayName)
-[2.] First Name               $($User.GivenName)
-[3.] Last Name                $($User.Surname)
-[4.] Job Title                $($User.JobTitle)
-[5.] Mobile Phone             $($User.MobilePhone)
-[6.] Department               $($User.Department)
-[7.] Street address           $($User.StreetAddress)
-[8.] City                     $($User.City)
-[9.] Postal Code              $($User.PostalCode)
-[10.] Country                 $($User.Country)
-[11.] Company Name            $($User.CompanyName)
-[12.] Remove from Group
+[1.] Display Name:            $($User.DisplayName)
+[2.] First Name:              $($User.GivenName)
+[3.] Last Name:               $($User.Surname)
+[4.] Job Title:               $($User.JobTitle)
+[5.] Mobile Phone:            $($User.MobilePhone)
+[6.] Email Address:           $($User.Mail)
+[7.] Department               $($User.Department)
+[8.] Street address           $($User.StreetAddress)
+[9.] City                     $($User.City)
+[10.] Postal Code             $($User.PostalCode)
+[11.] Country                 $($User.Country)
+[12.] Company Name            $($User.CompanyName)
+[13.] Remove from Group
+[14.] Add to Group
 "
         $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
 
@@ -137,53 +246,217 @@ Also, edits take a few moments to tick-over, so while it may appear like changes
             }
             2 {
                 $editMade = Read-Host -Prompt "What would you like to change '$($User.GivenName)' to?"
-                Update-MgUser -UserId $userID -GivenName $editMade; Break
+                Update-MgUser -UserId $userID -GivenName $editMade
+                Break
             }
             3 {
                 $editMade = Read-Host -Prompt "What would you like to change '$($User.Surname)' to?"
-                Update-MgUser -UserId $userID -Surname $editMade; Break
+                Update-MgUser -UserId $userID -Surname $editMade
+                Break
             }
             4 {
                 $editMade = Read-Host -Prompt "What would you like to change '$($User.JobTitle)' to?"
-                Update-MgUser -UserId $userID -JobTitle $editMade; Break
+                Update-MgUser -UserId $userID -JobTitle $editMade
+                Break
             }
             5 {
                 $editMade = Read-Host -Prompt "What would you like to change '$($User.MobilePhone)' to?"
-                Update-MgUser -UserId $userID -MobilePhone $editMade; Break
+                Update-MgUser -UserId $userID -MobilePhone $editMade
+                Break
             }
+
             6 {
-                $editMade = Read-Host -Prompt "What would you like to change the department to?"
-                Update-MgUser -UserId $userID -Department $editMade; Break
+                $editMade = CrossCounterEditUserMail -userID $userID
+                if($editMade -ne ""){
+                    Try {
+                        Write-Host "...`n"
+                        Update-MgUser -UserId $userID -Mail $editMade
+                        Write-Host "Success - New email is: $($editMade)"
+                    }Catch{
+                        Write-Host "Error - Email update failed"
+                    }
+                }
+                Break
             }
+
             7 {
-                $editMade = Read-Host -Prompt "What would you like to change the street address to?"
-                Update-MgUser -UserId $userID -StreetAddress $editMade; Break
+                $editMade = Read-Host -Prompt "What would you like to change the department to?"
+                Update-MgUser -UserId $userID -Department $editMade
+                Break
             }
             8 {
-                $editMade = Read-Host -Prompt "What would you like to change the city to?"
-                Update-MgUser -UserId $userID -City $editMade; Break
+                $editMade = Read-Host -Prompt "What would you like to change the street address to?"
+                Update-MgUser -UserId $userID -StreetAddress $editMade
+                Break
             }
             9 {
-                $editMade = Read-Host -Prompt "What would you like to change postal code to?"
-                Update-MgUser -UserId $userID -PostalCode $editMade; Break
+                $editMade = Read-Host -Prompt "What would you like to change the city to?"
+                Update-MgUser -UserId $userID -City $editMade
+                Break
             }
             10 {
-                $editMade = Read-Host -Prompt "What would you like to change the Country to?"
-                Update-MgUser -UserId $userID -Country $editMade; Break
+                $editMade = Read-Host -Prompt "What would you like to change postal code to?"
+                Update-MgUser -UserId $userID -PostalCode $editMade
+                Break
             }
             11 {
-                $editMade = Read-Host -Prompt "What would you like to change the company name to?"
-                Update-MgUser -UserId $userID -CompanyName $editMade; Break
+                $editMade = Read-Host -Prompt "What would you like to change the Country to?"
+                Update-MgUser -UserId $userID -Country $editMade
+                Break
             }
-            12 { # Groups
+            12 {
+                $editMade = Read-Host -Prompt "What would you like to change the company name to?"
+                Update-MgUser -UserId $userID -CompanyName $editMade
+                Break
+            }
+            13 { # Remove from groups
+                $chosenGroup = ''
                 Do {
-                    Get-MgUserMemberOf -UserID
-                } Until ($chosenOption -eq 'q')
+                    $groupMemberships = Get-MgUserMemberOf -UserID $userID
+                    $groupmemberships = $groupmemberships.ID
+                    $i = 0
+                    Do {
+                        Write-Host "$($i+1). $((Get-MgGroup -GroupId $groupmemberships[$i]).DisplayName)"
+                        $i++
+                    }Until($i -ge $groupMemberships.Length)
+                    $chosenGroup = Read-Host -Prompt "Which group would you like to leave? (or 'q' to go back)`n"
+                    $groupSelected = (Get-MgGroup -GroupId $groupMemberships[$chosenGroup-1])
+                    if($groupSelected){
+                        Write-Host "Removing $($User.DisplayName) from $($groupSelected.DisplayName)..."
+                        Try {
+                            Remove-MgGroupMemberByRef -GroupId $groupSelected.ID -DirectoryObjectId $userID
+                        }Catch{
+                            Write-Host "...Failed"
+                        }
+                    }else{
+                        Write-Host "Error - No group found"
+                    }
+                } Until ($chosenGroup -eq 'q')
+                Break
+            }
+            14 { # add to groups
+                Do {
+                    #get the ids of all the groups user is member of
+                    $groupMemberships = Get-MgUserMemberOf -UserID $userID
+                    $groupmemberships = $groupmemberships.ID
+                    #get the ids of all the groups in tenant
+                    $gL = (Get-MgGroup -Count groupCount -ConsistencyLevel eventual).ID
+                    #make a list of the user id for users not in both lists
+                        $pm = $gL | Where-Object { $_ -notin $groupMemberships }
+                        $potentialGroups = [Object[]]::new($pm.Length)
+                        $i = 0
+                    #convert these extracted group ids into group objects
+                        Do {
+                            $potentialGroups[$i] = Get-MgGroup -GroupId $pm[$i]
+                            $i++
+                        } Until($i -ge $pm.Length)
+                    #now we re-arrange the array of user objects alphabetically by display name
+                        $potentialGroups = $potentialGroups | Sort-Object -Property @{Expression = "DisplayName"}
+                        $i = 0
+                    #and write the alphabetical list of users
+                        Do{
+                            Write-Host "$($i+1). $(($potentialGroups[$i]).DisplayName)"
+                            $i++
+                        }Until($i -ge ($potentialGroups.Length))
+                    #pick a user and they get added to the group
+                            $chosenGroup = Read-Host -Prompt "`nEnter the number listed next to the group you want to add $($User.DisplayName) to (or 'q' to go back)`n"
+                            if (($chosenGroup -ne 'q')){
+                                $group = $potentialGroups[$chosenGroup-1]
+                                if($group){
+                                    Write-Host "Adding $($User.DisplayName) to $($group.DisplayName)..."
+                                    Try {
+                                        New-MgGroupMember -GroupId $group.ID -DirectoryObjectId $User.ID
+                                        Write-Host "SUCCESS! Added $($User.DisplayName) to $($group.DisplayName)"
+                                    }Catch{
+                                        Write-Host "FAILED to add $($User.DisplayName) to $($group.DisplayName)"
+                                    }
+                                }else{
+                                    Write-Host "Invalid Input - Could not find user..."
+                                }
+                            }
+                } Until ($chosenGroup -eq 'q')
+                Break
             }
         }
     }Until($chosenOption -eq 'q')
 }
 
+function CrossCounterEditUserMail {
+    param (
+        $userID
+    )
+    Do {
+        $editMade = ""
+        $User = Get-MgUser -UserId $userID      
+        $mail = $User.Mail -Split "@"
+        $fname = ($User.GivenName -replace '[\W]', '').ToLower() #sanitized for special characters
+        $sname = ($User.Surname -replace '[\W]', '').ToLower()   #sanitized for special characters
+        $mailOpt = "0","custom","no change","janesmith","jane.smith","jsmith","j.smith","janes","jane.s","js","j.s","smithj", "smith.j", "smithjane", "smith.jane"
+        $i++
+        $mailOpt[$i] = "";
+        Write-Host "`n$($i). - Custom input -"
+        $i++
+        $mailOpt[$i] = "";
+        Write-Host "`n$($i). - No Change -"
+        $i++
+        $mailOpt[$i] = "$($fname)$($sname)@$($mail[1])"        # janesmith@domain
+        Write-Host "`n$($i). $($mailOpt[$i])"                 
+        $i++
+        $mailOpt[$i] = "$($fname).$($sname)@$($mail[1])"       # jane.smith@domain
+        Write-Host "`n$($i). $($mailOpt[$i])"
+        $i++
+        $mailOpt[$i] = "$($fname.Substring(0,1))$($sname)@$($mail[1])"   # jsmith@domain
+        Write-Host "`n$($i). $($mailOpt[$i])"
+        $i++
+        $mailOpt[$i] = "$($fname.Substring(0,1)).$($sname)@$($mail[1])"  # j.smith@domain
+        Write-Host "`n$($i). $($mailOpt[$i])"  
+        $i++ 
+        $mailOpt[$i] = "$($fname)$($sname.Substring(0,1))@$($mail[1])"     # janes@domain
+        Write-Host "`n$($i). $($mailOpt[$i])"
+        $i++ 
+        $mailOpt[$i] = "$($fname).$($sname.Substring(0,1))@$($mail[1])"     # jane.s@domain
+        Write-Host "`n$($i). $($mailOpt[$i])"  
+        $i++ 
+        $mailOpt[$i] = "$($fname.Substring(0,1))$($sname.Substring(0,1))@$($mail[1])" # js@domain
+        Write-Host "`n$($i). $($mailOpt[$i])" 
+        $i++ 
+        $mailOpt[$i] = "$($fname.Substring(0,1)).$($sname.Substring(0,1))@$($mail[1])" # j.s@domain
+        Write-Host "`n$($i). $($mailOpt[$i])"
+        $i++ 
+        $mailOpt[$i] = "$($sname).$($fname.Substring(0,1))@$($mail[1])" # smithj@domain
+        Write-Host "`n$($i). $($mailOpt[$i])" 
+        $i++ 
+        $mailOpt[$i] = "$($sname).$($fname.Substring(0,1))@$($mail[1])" # smith.j@domain
+        Write-Host "`n$($i). $($mailOpt[$i])"
+        $i++ 
+        $mailOpt[$i] = "$($sname)$($fname)@$($mail[1])" # smithjane@domain
+        Write-Host "`n$($i). $($mailOpt[$i])" 
+        $i++ 
+        $mailOpt[$i] = "$($sname).$($fname)@$($mail[1])" # smith.jane@domain
+        Write-Host "`n$($i). $($mailOpt[$i])" 
+        $editMade = Read-Host -Prompt "`nWhat would you like to change '$($User.Mail)' to? (Pick an option above)`n"
+    
+    }Until($editMade -ne "")
+    switch ($editMade) {
+        0 { 
+            return ""
+            Break
+        }
+        1 {
+            Write-Host
+            $custInput = Read-Host -Prompt "-CUSTOM-`nWhat would you like to change ____________$($mail[1]) to?`n"
+            return $custInput+$mail[1]
+            Break}
+        2 {
+            return ""
+            Break
+        }
+        Default {
+            return $mailOpt[$editMade]
+        }
+    }
+    
+}
 function CrossCounterEditAll {
     Do {
         Write-Host "`n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
@@ -213,7 +486,7 @@ function CrossCounterEditAll {
                         Write-Host "$($i). ERROR"
                     }
                     $i++
-                }Until($i -eq ($userCount))
+                }Until($i -ge ($userCount))
             Break 
             }
             2 {
@@ -229,7 +502,7 @@ function CrossCounterEditAll {
                         Write-Host "$($i). ERROR"
                     }
                     $i++
-                }Until($i -eq ($userCount))
+                }Until($i -ge ($userCount))
             Break
             }
             3 {
@@ -245,7 +518,7 @@ function CrossCounterEditAll {
                         Write-Host "$($i). ERROR"
                     }
                     $i++
-                }Until($i -eq ($userCount))
+                }Until($i -ge ($userCount))
             Break
             }
             4 {
@@ -261,7 +534,7 @@ function CrossCounterEditAll {
                         Write-Host "$($i). ERROR"
                     }
                     $i++
-                }Until($i -eq ($userCount))
+                }Until($i -ge ($userCount))
             Break
             }
             5 {
@@ -277,7 +550,7 @@ function CrossCounterEditAll {
                         Write-Host "$($i). ERROR"
                     }
                     $i++
-                }Until($i -eq ($userCount))
+                }Until($i -ge ($userCount))
             Break
             }
             6 {
@@ -293,7 +566,7 @@ function CrossCounterEditAll {
                         Write-Host "$($i). ERROR"
                     }
                     $i++
-                }Until($i -eq ($userCount))
+                }Until($i -ge ($userCount))
             Break
             }
         }
@@ -305,7 +578,7 @@ function CrossCounterEditAll {
 Write-Host "Connecting... Sign into the popup window with your admin account."
 Write-Host "..."
 # Login to Microsoft Admin with AAD Read/Write Permissions
-Connect-MgGraph -Scopes "User.Read.All","Group.ReadWrite.All","Directory.Read.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All"
+Connect-MgGraph -Scopes "User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All"
 Write-Host ".`n..`n...`n....`n.....`n....`n...`n..`n."
 
 #----------------------------------------------------------------------------------
@@ -339,80 +612,62 @@ Do {
         'groups' {
             Do {
                 $groupList = CrossCounterListGroups
-                $chosenOption = Read-Host -Prompt "
+                $chosenGroup = Read-Host -Prompt "
 |================================================================|
 |                          GROUPS MENU                           |
-| Enter the number listed next to the group to edit it           |
-| new       - Create a new group                                 |
+|      Enter the number listed next to the group to edit it      |
 | q         - go back                                            |
 |================================================================|`n"
-                Try {
-                    if(($chosenOption -ne 'new') -and ($chosenOption -ne 'q')){
-                        $groupSelected = $groupList[$chosenOption-1]
+                #Try {
+                    if(($chosenGroup -ne 'new') -and ($chosenGroup -ne 'q')){
+                        $groupSelected = $groupList[$chosenGroup-1]
                         $groupID = $groupSelected.ID
-                        Do{
-                            $memberList = CrossCounterListMembers -GroupId $groupID
-                            $chosenOption = Read-Host -Prompt "
+                        if($groupSelected){
+                            Do{
+                                $groupSelected = Get-MgGroup -GroupId $groupID
+                                $memberList = CrossCounterListMembers -GroupId $groupID
+                                $chosenOption = Read-Host -Prompt "
 |=============================================================================================|
-|                                   GROUP MENU                                                |
+|                                   MEMBERS MENU                                              |
 | Enter the number listed next to the '$($groupSelected.DisplayName)' member to edit that user
 | add       - Add a user to this group                                                        |
 | remove    - Remove a user from this group                                                   |
 | q         - go back                                                                         |
 |=============================================================================================|`n"
-                            switch($chosenOption){
+                                switch($chosenOption){
 
-                                'q' {
-                                    Break
-                                }
+                                    'q' {
+                                        Break
+                                    }
 
-                                'add' {
-                                    $userList = CrossCounterListUsers
-                                    Do {
-                                        $chosenUser = Read-Host -Prompt "`nEnter the number listed next to the user you want to add to the '$($groupSelected.DisplayName)' group (or 'q' to go back)`n"
+                                    'add' {
+                                        CrossCounterAddMember -groupID $groupID
+                                        Break
+                                    }
+
+                                    'remove' {
+                                        CrossCounterRemoveMember -GroupId $groupID
+                                        Break
+                                    }
+
+                                    default{
                                         Try {
-                                            if ($chosenUser -ne 'q'){
-                                                $member = $userList[$chosenUser-1]
-                                                Write-Host "Adding $($member.DisplayName) to $($groupSelected.DisplayName)..."
-                                                Try {
-                                                    New-MgGroupMember -GroupId $groupID -DirectoryObjectId $member.ID
-                                                    Write-Host "SUCCESS! Added $($member.DisplayName) to $($groupSelected.DisplayName)"
-                                                }Catch{
-                                                    Write-Host "FAILED to add $($member.DisplayName) to $($groupSelected.DisplayName)"
-                                                }
-                                                $chosenUser = 'q'
-                                            }
+                                            $member = $memberList[$chosenOption-1]
+                                            Write-Host $member.DisplayName
+                                            CrossCounterEditUser -userID $member.ID
                                         } Catch {
                                             Write-Host "Invalid Input - No member listed under that"
                                         }
-                                    } Until ($chosenUser -eq 'q')
-                                    Break
-                                }
-
-                                'remove' {
-
-                                    Break
-                                }
-
-                                default{
-                                    Try {
-                                        $member = $memberList[$chosenOption-1]
-                                        Write-Host $member.DisplayName
-                                        CrossCounterEditUser -userID $member.ID
-                                    } Catch {
-                                        Write-Host "Invalid Input - No member listed under that"
                                     }
                                 }
-                            }
-                        }Until($chosenOption -eq 'q')
+                            }Until($chosenOption -eq 'q')
+                        }
                     }
-                } Catch {
-                    Write-Host "Invalid Input - No group listed under that"
-                }
-                
-            
-            }Until($chosenOption -eq 'q')
-            Break
+                # } Catch {
+                #     Write-Host "Invalid Input - No group listed under that"
+                # }
+                }Until($chosenGroup -eq 'q')
+                Break
         }
 #=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-=
 #'off' for User offboarding
@@ -433,6 +688,7 @@ Do {
                     if (($chosenOption -eq 'y') -or (($chosenOption -eq 'Y'))){
                         Write-Host "OFFBOARDING FOR $($User.DisplayName)`n$($User.Mail)..."
                         Write-Host "(this may take a moment...`n)"
+                        
                         #1. Reset Password
                         Write-Host "1. - RESETTING PASSWORD..."
                         $newPass = GeneratePassword
@@ -444,11 +700,31 @@ Do {
                             Write-Host $_.ScriptStackTrace
                             Write-Host "Password Reset... FAILED"
                         }
+                        
                         #2. Remove from all groups
-                        Write-Host "2. - REMOVING FROM GROUPS"
-                            # need this for the graph query below; it needs a $ref tacked on at the end. By setting the variable to '$ref' it does not get interpreted as a variable.
-                            $ref = "$ref" #janky!!
-                            Invoke-MgGraphRequest -Method Delete -Uri "https://graph.microsoft.com/v1.0/groups/$($GroupObj.Id)/members/$($userID)/$ref"
+                        Write-Host "`n2. - REMOVING FROM GROUPS"        
+                        $groupMemberships = Get-MgUserMemberOf -UserID $userID
+                        $groupMemberships = $groupMemberships.ID            
+                        $i = 0
+                        Do {
+                            Try {
+                                Remove-MgGroupMemberByRef -GroupId $groupMemberships[$i] -DirectoryObjectId $userID
+                                Write-Host "$((Get-MgGroup -GroupId $groupMemberships[$i]).DisplayName)... SUCCESS"
+                            }Catch{
+                                Write-Host "$((Get-MgGroup -GroupId $groupMemberships[$i]).DisplayName)... FAIL"
+                            }
+                            $i++
+                        }Until($i -ge $groupMemberships.Length)
+                        Write-Host "Re-listing user's group membersips... (It is expected that some group memberships will remain, eg. 'All Users')"
+                        $memarr = Get-MgUserMemberOf -UserID $userID
+                        $memarr = $memarr.ID
+                        $i = 0
+                        Do {
+                            Write-Host (Get-MgGroup -GroupId $memarr[$i]).DisplayName
+                            $i++
+                        }Until($i -ge $memarr.Length)
+                        
+                        #3.
                     }
                 }else{
                         Write-Host "Invalid Input - Enter the number listed next to the user"

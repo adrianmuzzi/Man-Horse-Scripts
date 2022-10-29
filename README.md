@@ -31,20 +31,29 @@ This is still under construction and calling it is not recommended. It is planne
 
 ## 'Edit User' menu
 This menu allows for quick changes to a chosen user in the tenant.
-- [1] Display Name*
-- [2] First Name*
-- [3] Last Name*
-- [4] Job Title*
-- [5] Mobile Phone*
-- [6] Department
-- [7] Street address
-- [8] City
-- [9] Postal Code
-- [10] Country
-- [11] Company Name
-- [12] Remove from Group^
+- [1] Display Name: *
+- [2] First Name: *
+- [3] Last Name: *
+- [4] Job Title: *
+- [5] Mobile Phone *
+- [6] Email Address *
+- [7] Department
+- [8] Street address
+- [9] City
+- [10] Postal Code
+- [11] Country
+- [12] Company Name
+- [13] Remove from Group
+- [14] Add to Group
 
-**shows preview* *^curently broken*
+**shows preview*
+
+These options are fairly self explanatory. There is some extra functionality for:
+- Display Name
+  - Editing the Display name will prompt you to change the 'First Name' and 'Last Name' options to match.
+- Email
+  - Opting to change a user's email presents you with a list of preset options that utilise the 'First Name' and 'Last Name' profile items of the user. It also allows for custom input.
+
 ## 'Edit All' menu
 The 'Edit All' commands apply  to all the users in the tenant.
 - [1] Company Name
@@ -57,13 +66,20 @@ The 'Edit All' commands apply  to all the users in the tenant.
 After a change is input, the script cycles through each user in the tenant and applies the changes one-by-one.
 
 ## 'Groups' Menu
-The `GROUPS MENU` is presented after a list of all the groups in the tenant.
+The `GROUPS MENU` is presented alongside a list of all the groups in the tenant.
 -  ### Enter the number listed next to the group to edit it
-Lists the users in a group. Entering a user's number takes you to the edit user menu. Other funtionality is currently broken.
--  ### Create a new group
-Broken.
+Leads to the `MEMBERS MENU` for the specified group
 -  ### q
 Returns to *Main Menu*
+
+## 'Members' Menu
+The `MEMBERS MENU` is accessible through the `GROUPS MENU` and is contxtual to a chosen group. It is presented alongside a list of members within the group.
+### Enter the number listed next to the member...
+Takes you to the *Edit User* page for the chosen group member. When you exit the user page, you will return to the Members menu.
+### add
+Presents a list of users who are not already in the group. Users can be added to the group from this list.
+### remove
+Refreshes the group's member list and enables you to pick a user to be removed from the group.
 
 ## Off Boarding
 Currently this will generate a random password and assign it to the user. Functionality beyond that is broken.
@@ -72,4 +88,4 @@ Currently this will generate a random password and assign it to the user. Functi
 
 **What scopes does Cross Counter use to connect?**
 
->` Connect-MgGraph -Scopes "User.Read.All","Group.ReadWrite.All","Directory.Read.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All" `
+>` Connect-MgGraph -Scopes "User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All"`
