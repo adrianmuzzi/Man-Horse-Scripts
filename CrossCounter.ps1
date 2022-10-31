@@ -1,4 +1,4 @@
-<# Barclay McClay - 2022 - ver1.1 #>
+<# Barclay McClay - 2022 - ver1.2 #>
 Write-Host " __   __   __   __   __      __   __            ___  ___  __  "
 Write-Host "/  ' |__) /  \ /__' /__'    /  ' /  \ |  | |\ |  |  |__  |__) "
 Write-Host "\__, |  \ \__/ .__/ .__/    \__, \__/ \__/ | \|  |  |___ |  \ "
@@ -17,18 +17,53 @@ if(-not (Get-Module Microsoft.Graph -ListAvailable)){
 # ==============================================================================
 #                             DEFINE FUNCTIONS
 # ==============================================================================
-
-function GeneratePassword {
-#This is a quick and dirty method to be taken as an EXAMPLE. I'm not making any guarantees on the data security of accounts using passwords generated in this way.
-#The mere fact this is public on github means it is effectivley 'compromised'. If you want to be safe, makechang
-    $num1 = Get-Random -Maximum 10000
-    $letterList = "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","!","?","$","1","2","3","4","5","6","7","8","9"
-    $passArr = $num1, ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random),($letterList.ToUpper() | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random) | Get-Random -Shuffle
-    $newPassword = [String]::Join("",$passArr)
-#Seriously... I just typed this up, slapped it on the booty, and said 'Bam! Good-enough!'. You should probably make some *changes* to the function at the very-least.
-    return $newPassword
+function Get-MnemonicWord {
+    try {
+        $WordListUri = "https://raw.githubusercontent.com/chelnak/MnemonicEncodingWordList/master/mnemonics.json"
+        $WordListObject = Invoke-RestMethod -Method Get -Uri $WordListUri
+        $w = Get-Random -InputObject $WordListObject.words -Count 1
+        return $w
+    }
+    catch [Exception]{
+        throw "Could not retrieve Mnemonic Word List: $($Exception.Message)"
+    } 
 }
-
+function GeneratePassword {
+    param (
+        $PWStrength
+    )
+    $n = Get-Random -Maximum 10000
+    $nn = Get-Random -Maximum 100
+    $word = Get-MnemonicWord
+    $word2 = Get-MnemonicWord
+    $letterList = "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","!","?","$","1","2","3","4","5","6","7","8","9"
+    switch ($PWStrength) {
+        1 {     
+            $pass = "$($word)$($n)$($word2.ToUpper)"
+            Break
+        }
+        2 { 
+            $pass = "$($word)$($word2)$($n)$($letterList.ToUpper() | Get-Random)$($letterList.ToUpper() | Get-Random)"
+            Break
+        }
+        3 { 
+            $passArr = $($word),$($word2),$($n),$($letterList.ToUpper() | Get-Random),$($letterList.ToUpper() | Get-Random) | Get-Random -Shuffle
+            $pass = [String]::Join("",$passArr)
+            Break
+        }
+        4 {
+            $passArr = $($n),$($letterList.ToUpper() | Get-Random),$($letterList.ToUpper() | Get-Random),$($letterList.ToUpper() | Get-Random),$($nn),$($letterList | Get-Random),$($letterList | Get-Random),$($letterList | Get-Random),$($letterList | Get-Random),$($letterList | Get-Random),$($letterList | Get-Random)  | Get-Random -Shuffle
+            $pass = [String]::Join("",$passArr)
+            Break
+        }
+        5 { 
+            $passArr = $n, $nn, $word, $word2, ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random),($letterList.ToUpper() | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random) | Get-Random -Shuffle
+            $pass = [String]::Join("",$passArr)
+            Break
+        }
+    }
+    return $pass
+}
 function CrossCounterListUsers {
     Write-Host "`n----------------------------------------------------------------------------------
           ___  ___  __   __
@@ -45,7 +80,6 @@ function CrossCounterListUsers {
     Write-Host "Press < ALT + SPACE , E , F > to search within Powershell console"
     return $uL
 }
-
 
 function CrossCounterListGroups {
     Write-Host "`n"
@@ -65,7 +99,6 @@ function CrossCounterListGroups {
     Write-Host "Press < ALT + SPACE , E , F > to search within Powershell console"
     return $gL
 }
-
 function CrossCounterListMembers {
     param (
         $GroupId
@@ -95,7 +128,6 @@ function CrossCounterListMembers {
     Write-Host "`n$memberCount members of $($groupSelected.DisplayName) - Listed alphabetically..."
     return $mL
 }
-
 function CrossCounterAddMember {
     param (
         $groupID
@@ -147,7 +179,6 @@ function CrossCounterAddMember {
             }
     } Until ($chosenUser -eq "q")
 }
-
 function CrossCounterRemoveMember {
     param (
         $GroupId
@@ -196,7 +227,6 @@ function CrossCounterRemoveMember {
         }
     }Until ($chosenUser -eq "q")
 }
-
 function CrossCounterEditUser {
     param (
         $userID
@@ -227,6 +257,7 @@ Also, edits take a few moments to tick-over, so while it may appear like changes
 [12.] Company Name            $($User.CompanyName)
 [13.] Remove from Group
 [14.] Add to Group
+[15.] Reset Password
 "
         $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
 
@@ -311,25 +342,37 @@ Also, edits take a few moments to tick-over, so while it may appear like changes
             }
             13 { # Remove from groups
                 $chosenGroup = ''
+                Write-Host "`n-----------------------------------------------------------------------"
+                Write-Host "   Remove from group..."
+                Write-Host "(changes take a minute or so to appear)"
+                Write-Host "-----------------------------------------------------------------------`n`n"
                 Do {
-                    $groupMemberships = Get-MgUserMemberOf -UserID $userID
-                    $groupmemberships = $groupmemberships.ID
-                    $i = 0
-                    Do {
-                        Write-Host "$($i+1). $((Get-MgGroup -GroupId $groupmemberships[$i]).DisplayName)"
-                        $i++
-                    }Until($i -ge $groupMemberships.Length)
-                    $chosenGroup = Read-Host -Prompt "Which group would you like to leave? (or 'q' to go back)`n"
-                    $groupSelected = (Get-MgGroup -GroupId $groupMemberships[$chosenGroup-1])
-                    if($groupSelected){
-                        Write-Host "Removing $($User.DisplayName) from $($groupSelected.DisplayName)..."
-                        Try {
-                            Remove-MgGroupMemberByRef -GroupId $groupSelected.ID -DirectoryObjectId $userID
-                        }Catch{
-                            Write-Host "...Failed"
+                    $groupMemberships = Get-MgUserMemberOf -UserID $userID -Count membershipCount -ConsistencyLevel eventual
+                    $groupMemberships = $groupMemberships.ID
+                    if($membershipCount -gt 1){
+                        $i = 0
+                        Do {
+                            Write-Host "$($i+1). $((Get-MgGroup -GroupId $groupmemberships[$i] | Where-Object {$_.DisplayName -ne "All Users"}).DisplayName)"
+                            $i++
+                        }Until($i -ge $groupMemberships.Length)
+                        $chosenGroup = Read-Host -Prompt "Which group would you like to leave? (or 'q' to go back)`n"
+                        if($chosenGroup -ne 'q'){
+                            $groupSelected = (Get-MgGroup -GroupId $groupMemberships[$chosenGroup-1])
+                            if($groupSelected){
+                                Write-Host "Removing $($User.DisplayName) from $($groupSelected.DisplayName)..."
+                                Try {
+                                    Remove-MgGroupMemberByRef -GroupId $groupSelected.ID -DirectoryObjectId $userID
+                                    Write-Host
+                                }Catch{
+                                    Write-Host "...Failed"
+                                }
+                            }else{
+                                Write-Host "Error - No group found"
+                            }
                         }
                     }else{
-                        Write-Host "Error - No group found"
+                        "$($User.DisplayName) is in only in one group - '$((Get-MgGroup -GroupId $groupmemberships).DisplayName)'`n"
+                        $chosenGroup = 'q'
                     }
                 } Until ($chosenGroup -eq 'q')
                 Break
@@ -337,30 +380,34 @@ Also, edits take a few moments to tick-over, so while it may appear like changes
             14 { # add to groups
                 Do {
                     #get the ids of all the groups user is member of
-                    $groupMemberships = Get-MgUserMemberOf -UserID $userID
+                    $groupMemberships = Get-MgUserMemberOf -UserID $userID -Count membershipCount -ConsistencyLevel eventual
                     $groupmemberships = $groupmemberships.ID
                     #get the ids of all the groups in tenant
-                    $gL = (Get-MgGroup -Count groupCount -ConsistencyLevel eventual).ID
-                    #make a list of the user id for users not in both lists
-                        $pm = $gL | Where-Object { $_ -notin $groupMemberships }
-                        $potentialGroups = [Object[]]::new($pm.Length)
+                    $gL = (Get-MgGroup -All).ID
+                    if(membershipCount -gt 1){
+                        #make a list of the user id for users not in both lists
+                        $pg = $gL | Where-Object { $_ -notin $groupMemberships }
+                        $potentialGroups = [Object[]]::new($pg.Length)
                         $i = 0
-                    #convert these extracted group ids into group objects
+                        #convert these extracted group ids into group objects
                         Do {
-                            $potentialGroups[$i] = Get-MgGroup -GroupId $pm[$i]
+                            $potentialGroups[$i] = Get-MgGroup -GroupId $pg[$i]
                             $i++
-                        } Until($i -ge $pm.Length)
-                    #now we re-arrange the array of user objects alphabetically by display name
+                        } Until($i -ge $pg.Length)
+                        #now we re-arrange the array of user objects alphabetically by display name
                         $potentialGroups = $potentialGroups | Sort-Object -Property @{Expression = "DisplayName"}
                         $i = 0
-                    #and write the alphabetical list of users
+                        #and write the alphabetical list of users
                         Do{
                             Write-Host "$($i+1). $(($potentialGroups[$i]).DisplayName)"
                             $i++
                         }Until($i -ge ($potentialGroups.Length))
+                    }else{
+                        $potentialGroups = Get-MgGroup -All | Where-Object {$_.DisplayName -ne "All Users"}
+                    }
                     #pick a user and they get added to the group
                             $chosenGroup = Read-Host -Prompt "`nEnter the number listed next to the group you want to add $($User.DisplayName) to (or 'q' to go back)`n"
-                            if (($chosenGroup -ne 'q')){
+                            if (($chosenGroup -ne 'q') -and ($chosenGroup -ne "")){
                                 $group = $potentialGroups[$chosenGroup-1]
                                 if($group){
                                     Write-Host "Adding $($User.DisplayName) to $($group.DisplayName)..."
@@ -377,14 +424,43 @@ Also, edits take a few moments to tick-over, so while it may appear like changes
                 } Until ($chosenGroup -eq 'q')
                 Break
             }
+            15 {
+                #Reset Password
+                Write-Host "/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\"
+                Write-Host " Reset Password..."
+                Write-Host "/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\`n"
+                Write-Host "
+                CrossCounter Passwords don't contain the user's ID and are least 8 characters long with at least 3 of the following: 
+                upper-case letters, lower-case letters, numbers and symbols.
+                "
+                $editMade = CrossCounterEditUserPassword -userID $userID
+                if(($editMade -ne "") -and $editMade -ne "q"){
+                    try {
+                        $authMethod = Get-MgUserAuthenticationMethod -UserId $userID
+                        Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $editMade
+                        Write-Host "Password Reset... SUCCESS"
+                        Write-Host "
+PASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORD
+PASS                                                                                        WORD
+                                    $($editMade)        
+PASS                                                                                        WORD
+PASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORD
+"
+                    }catch{
+                        Write-Host $_
+                        Write-Host "Password Reset... FAILED"
+                    }
+                }
+                Break
+            }
         }
     }Until($chosenOption -eq 'q')
 }
-
 function CrossCounterEditUserMail {
     param (
         $userID
     )
+    $i = 0 
     Do {
         $editMade = ""
         $User = Get-MgUser -UserId $userID      
@@ -453,6 +529,77 @@ function CrossCounterEditUserMail {
         }
         Default {
             return $mailOpt[$editMade]
+        }
+    }
+    
+}
+function CrossCounterEditUserPassword {
+    param (
+        $userID
+    )
+    $i = 0
+    Do {
+        $editMade = ""
+        $passOpt = "0","custom","No Change","1","2","3","4","5"
+        $i++
+        $passOpt[$i] = "";
+        Write-Host "`n$($i). - Custom input -"
+        $i++
+        $passOpt[$i] = "";
+        Write-Host "`n$($i). - No Change -"
+        $i++
+        $passOpt[$i] = "$(GeneratePassword -PWStrength 1)"
+        Write-Host "`n$($i). $($passOpt[$i])"                 
+        $i++
+        $passOpt[$i] = "$(GeneratePassword -PWStrength 2)"
+        Write-Host "`n$($i). $($passOpt[$i])"
+        $i++
+        $passOpt[$i] = "$(GeneratePassword -PWStrength 3)"
+        Write-Host "`n$($i). $($passOpt[$i])"
+        $i++
+        $passOpt[$i] = "$(GeneratePassword -PWStrength 4)"
+        Write-Host "`n$($i). $($passOpt[$i])"
+        $i++
+        $passOpt[$i] = "$(GeneratePassword -PWStrength 5)"
+        Write-Host "`n$($i). $($passOpt[$i])"
+        $editMade = Read-Host -Prompt "`nPick an option above to reset the user's password`n"
+
+    }Until($editMade -ne "")
+    
+    switch ($editMade) {
+        0 { 
+            return ""
+            Break
+        }
+        1 {
+            Write-Host
+            $custInput = Read-Host -Prompt "-CUSTOM-`nPasswords can't contain the user's ID and need to be at least 8 characters long with at least 3 of the following: upper-case letters, lower-case letters, numbers and symbols.`nWhat would you like to change the password to?`n"
+            if($custInput.Length -ge 8){
+            return $custInput
+            }else{
+                Write-Host "Error - Passwords can't contain the user's ID and should be at least 8 characters long with at least 3 of the following: upper-case letters, lower-case letters, numbers and symbols."
+                Write-Host "Plase try again with a different password."
+                return ""
+            }
+            Break
+        }
+        2 {
+            return ""
+            Break
+        }
+        'q' {
+            return ""
+            Break
+        }
+        Default {
+            if($passOpt[$editMade].Length -ge 8){
+                return $passOpt[$editMade]
+            }else{
+                Write-Host "Error - Passwords can't contain the user's ID and should be at least 8 characters long with at least 3 of the following: upper-case letters, lower-case letters, numbers and symbols."
+                Write-Host "Plase try again with a different password."
+                return ""
+            }
+            
         }
     }
     
@@ -587,6 +734,7 @@ Write-Host ".`n..`n...`n....`n.....`n....`n...`n..`n."
 # List all the users in the tenant
 $userList = CrossCounterListUsers
 
+
 # MAIN MENU ++++++++++++++++++++++++++++++++++++++++++++++++++++++|
 Do {
     $User = ""
@@ -619,7 +767,7 @@ Do {
 | q         - go back                                            |
 |================================================================|`n"
                 #Try {
-                    if(($chosenGroup -ne 'new') -and ($chosenGroup -ne 'q')){
+                    if(($chosenGroup -ne 'q') -and ($chosenGroup -ne '')){
                         $groupSelected = $groupList[$chosenGroup-1]
                         $groupID = $groupSelected.ID
                         if($groupSelected){
@@ -669,70 +817,6 @@ Do {
                 }Until($chosenGroup -eq 'q')
                 Break
         }
-#=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-=
-#'off' for User offboarding
-        'off' {
-            Write-Host "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-`nUser Offboarding`n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-`n"
-            Do {
-                $chosenOption = Read-Host -Prompt "Enter the number listed next to the user set for Offboarding (or 'q' to go back)`n"
-                Try {
-                    $User = $userList[($chosenOption-1)]
-                    $userID = $User.ID
-                } Catch {
-                    Write-Host "Invalid Input - No user found listed under that number..."
-                }
-                if ($User) {
-                    Write-Host "OFFBOARDING FOR $($User.DisplayName)`n$($User.Mail)..."
-                    Write-Host "!! WARNING !! CONFIRM YOU MEAN TO OFFBOARD THIS USER !! $($userID)"
-                    $chosenOption = Read-Host -Prompt "(y/n)"
-                    if (($chosenOption -eq 'y') -or (($chosenOption -eq 'Y'))){
-                        Write-Host "OFFBOARDING FOR $($User.DisplayName)`n$($User.Mail)..."
-                        Write-Host "(this may take a moment...`n)"
-                        
-                        #1. Reset Password
-                        Write-Host "1. - RESETTING PASSWORD..."
-                        $newPass = GeneratePassword
-                        $authMethod = Get-MgUserAuthenticationMethod -UserId $userID
-                        try {
-                            Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $newPass
-                            Write-Host "Password Reset... SUCCESS"
-                        }catch{
-                            Write-Host $_.ScriptStackTrace
-                            Write-Host "Password Reset... FAILED"
-                        }
-                        
-                        #2. Remove from all groups
-                        Write-Host "`n2. - REMOVING FROM GROUPS"        
-                        $groupMemberships = Get-MgUserMemberOf -UserID $userID
-                        $groupMemberships = $groupMemberships.ID            
-                        $i = 0
-                        Do {
-                            Try {
-                                Remove-MgGroupMemberByRef -GroupId $groupMemberships[$i] -DirectoryObjectId $userID
-                                Write-Host "$((Get-MgGroup -GroupId $groupMemberships[$i]).DisplayName)... SUCCESS"
-                            }Catch{
-                                Write-Host "$((Get-MgGroup -GroupId $groupMemberships[$i]).DisplayName)... FAIL"
-                            }
-                            $i++
-                        }Until($i -ge $groupMemberships.Length)
-                        Write-Host "Re-listing user's group membersips... (It is expected that some group memberships will remain, eg. 'All Users')"
-                        $memarr = Get-MgUserMemberOf -UserID $userID
-                        $memarr = $memarr.ID
-                        $i = 0
-                        Do {
-                            Write-Host (Get-MgGroup -GroupId $memarr[$i]).DisplayName
-                            $i++
-                        }Until($i -ge $memarr.Length)
-                        
-                        #3.
-                    }
-                }else{
-                        Write-Host "Invalid Input - Enter the number listed next to the user"
-                }
-            } Until ($chosenOption = 'q')
-        Break
-        }
-#=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-=
 
 #Input 'users' to re-list all the users in the tenant
         'users' {

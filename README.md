@@ -2,7 +2,7 @@
 I plan for this to  be a repository of Powershell scripts I have developed to shave milliseconds off of the time it takes me to do something at work.
 They are all named for Melbourne Cup winners.
 
-# Cross Counter 1.1
+# Cross Counter 1.2
 
 Cross Counter is for making fast changes to users in a Microsoft 365 tenant. It utilises the MgGraph powershell module. If you do not have this module, it will prompt you for install.
 
@@ -23,9 +23,6 @@ Leads to the *Groups Menu*.
 - ### users
 This refreshes and re-displays the user list. Note that if changes are made to a user's display name- this may lead to changes in the list ordering (as it is organised alphabetically). Whenever you select a user from the user list,  the 'number' you input to do so is always relevant to the most recent time the user list has been refreshed and displayed.
 
-- ### off
-This is still under construction and calling it is not recommended. It is planned that this will take the selected user through an automated 'employee off boarding' process. *Be careful when using this command*.
-
 - ### q
 'q' In the main menu will sign out of MgGraph and exit powershell.
 
@@ -45,6 +42,7 @@ This menu allows for quick changes to a chosen user in the tenant.
 - [12] Company Name
 - [13] Remove from Group
 - [14] Add to Group
+- [15] Reset Password
 
 **shows preview*
 
@@ -53,6 +51,12 @@ These options are fairly self explanatory. There is some extra functionality for
   - Editing the Display name will prompt you to change the 'First Name' and 'Last Name' options to match.
 - Email
   - Opting to change a user's email presents you with a list of preset options that utilise the 'First Name' and 'Last Name' profile items of the user. It also allows for custom input.
+- Remove from Group/Add to Group
+  - These options allow you to add/remove the selected user from M365 groups.
+
+    ***Note:** Microsoft also supports distribution groups and Mail-enabled security groups which cannot be managed or retrieved through Microsoft Graph. A solution for this is planned for future updates of Cross Counter*
+- Reset Password
+  - This option enables you 
 
 ## 'Edit All' menu
 The 'Edit All' commands apply  to all the users in the tenant.
@@ -67,6 +71,8 @@ After a change is input, the script cycles through each user in the tenant and a
 
 ## 'Groups' Menu
 The `GROUPS MENU` is presented alongside a list of all the groups in the tenant.
+
+  ***Note:** Microsoft also supports distribution groups and Mail-enabled security groups which cannot be managed or retrieved through Microsoft Graph. A solution for this is planned for future updates of Cross Counter*
 -  ### Enter the number listed next to the group to edit it
 Leads to the `MEMBERS MENU` for the specified group
 -  ### q
