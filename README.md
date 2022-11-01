@@ -1,13 +1,13 @@
 # Man-Horse-Scripts
 I plan for this to  be a repository of Powershell scripts I have developed to shave milliseconds off of the time it takes me to do something at work.
-They are all named for Melbourne Cup winners.
+They are all named for Horses.
 
-# Cross Counter 1.2
+# Cross Counter
 
-Cross Counter is for making fast changes to users in a Microsoft 365 tenant. It utilises the MgGraph powershell module. If you do not have this module, it will prompt you for install.
+*Cross Counter* is for making fast changes to users in a Microsoft 365 tenant. It utilises the MgGraph powershell module. If you do not have this module, it will prompt you for install.
 
 A web browser will then be launched with a Microsoft login prompt. 
-## Main menu commands
+## 'Main Menu' commands
 
 The `MAIN MENU` is the highest level menu in Cross Counter. Upon first singing into the tenant with Cross Counter, you are prompted with a fresh user list and this main menu.
 
@@ -33,16 +33,15 @@ This menu allows for quick changes to a chosen user in the tenant.
 - [3] Last Name: *
 - [4] Job Title: *
 - [5] Mobile Phone *
-- [6] Email Address *
-- [7] Department
-- [8] Street address
-- [9] City
-- [10] Postal Code
-- [11] Country
-- [12] Company Name
-- [13] Remove from Group
-- [14] Add to Group
-- [15] Reset Password
+- [6] Business Phone *
+- [7] Email Address *
+- [8] Department
+- [9] Street address
+- [10] City
+- [11] Postal Code
+- [12] Country
+- [13] Company Name
+- [14] Reset Password
 
 **shows preview*
 
@@ -50,14 +49,9 @@ These options are fairly self explanatory. There is some extra functionality for
 - Display Name
   - Editing the Display name will prompt you to change the 'First Name' and 'Last Name' options to match.
 - Email
-  - Opting to change a user's email presents you with a list of preset options that utilise the 'First Name' and 'Last Name' profile items of the user. It also allows for custom input.
-- Remove from Group/Add to Group
-  - These options allow you to add/remove the selected user from M365 groups.
-
-    ***Note:** Microsoft also supports distribution groups and Mail-enabled security groups which cannot be managed or retrieved through Microsoft Graph. A solution for this is planned for future updates of Cross Counter*
+  - Changing a user's email presents you with a list of preset options that utilise the 'First Name' and 'Last Name' profile items of the user. It also allows for custom input. ***Note:** This does not change the user's principal name*.
 - Reset Password
-  - This option enables you 
-
+  - This option enables you choose a new password from a list of presets, *or* input a custom password. Cross Counter passwords must be 8 characters or longer. If you input a password which does not meet the relevant password strength policies of your tenant, there is a bug where Cross Counter will report a 'sucessful' password reset, yet nothing will be actually be changed. The generated presets cover most password strength requirements, but are not generated in the most crytographically elegant way.
 ## 'Edit All' menu
 The 'Edit All' commands apply  to all the users in the tenant.
 - [1] Company Name
@@ -72,7 +66,10 @@ After a change is input, the script cycles through each user in the tenant and a
 ## 'Groups' Menu
 The `GROUPS MENU` is presented alongside a list of all the groups in the tenant.
 
-  ***Note:** Microsoft also supports distribution groups and Mail-enabled security groups which cannot be managed or retrieved through Microsoft Graph. A solution for this is planned for future updates of Cross Counter*
+>  ***Note:** Microsoft also supports distribution groups and Mail-enabled security groups which cannot be managed or retrieved through Microsoft Graph.*
+
+Groups functionality is limited in Cross Counter because the Microsoft Graph PowerShell module is limited in its scope. Not all 'groups' listed in the menu will be directly editable.
+
 -  ### Enter the number listed next to the group to edit it
 Leads to the `MEMBERS MENU` for the specified group
 -  ### q
@@ -80,15 +77,14 @@ Returns to *Main Menu*
 
 ## 'Members' Menu
 The `MEMBERS MENU` is accessible through the `GROUPS MENU` and is contxtual to a chosen group. It is presented alongside a list of members within the group.
-### Enter the number listed next to the member...
+- ### Enter the number listed next to the member...
 Takes you to the *Edit User* page for the chosen group member. When you exit the user page, you will return to the Members menu.
-### add
+- ### add
 Presents a list of users who are not already in the group. Users can be added to the group from this list.
-### remove
+- ### remove
 Refreshes the group's member list and enables you to pick a user to be removed from the group.
-
-## Off Boarding
-Currently this will generate a random password and assign it to the user. Functionality beyond that is broken.
+- ### q
+Returns to *Groups Menu*
 
 ## More info:
 

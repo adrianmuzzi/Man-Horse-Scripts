@@ -1,19 +1,16 @@
-<# Barclay McClay - 2022 - ver1.2 #>
-Write-Host " __   __   __   __   __      __   __            ___  ___  __  "
-Write-Host "/  ' |__) /  \ /__' /__'    /  ' /  \ |  | |\ |  |  |__  |__) "
-Write-Host "\__, |  \ \__/ .__/ .__/    \__, \__/ \__/ | \|  |  |___ |  \ "
-Write-Host "                                                              "
-Write-Host "-- -- +++ -- +++ -- +++ -- +++ -- +++ -- +++ -- +++ -- +++ --`n"
+<# Barclay McClay - 2022 #>
+Write-Host " __   __   __   __   __      __   __            ___  ___  __  " -ForegroundColor Yellow
+Write-Host "/  ' |__) /  \ /__' /__'    /  ' /  \ |  | |\ |  |  |__  |__) " -ForegroundColor Yellow
+Write-Host "\__, |  \ \__/ .__/ .__/    \__, \__/ \__/ | \|  |  |___ |  \ " -ForegroundColor Yellow
+Write-Host "-- -- +++ -- +++ -- +++ -- +++ -- +++ -- +++ -- +++ -- +++ --`n" -ForegroundColor DarkYellow
 #################################################################################
-
 #Check if we have the Microsoft Graph Powershell Module, If we don't; Install it
 if(-not (Get-Module Microsoft.Graph -ListAvailable)){
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-    Write-Host "`nLooks like you don't have the required module.`nAllow one moment to install (first time set-up)..."
+    Write-Host "`nLooks like you don't have the required module.`nAllow one moment to install (first time set-up)..." -ForegroundColor DarkRed
     Write-Host "The system may ask you if you 'trust' this repository. Enter 'A' for 'Yes to All'."
     Install-Module Microsoft.Graph -Scope CurrentUser
 }
-
 # ==============================================================================
 #                             DEFINE FUNCTIONS
 # ==============================================================================
@@ -36,14 +33,14 @@ function GeneratePassword {
     $nn = Get-Random -Maximum 100
     $word = Get-MnemonicWord
     $word2 = Get-MnemonicWord
-    $letterList = "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","!","?","$","1","2","3","4","5","6","7","8","9"
+    $letterList = "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","!","?","@","#", "&","=","%"
     switch ($PWStrength) {
         1 {     
-            $pass = "$($word)$($n)$($word2.ToUpper)"
+            $pass = "$($word)$($nn)$($word2.ToUpper())"
             Break
         }
         2 { 
-            $pass = "$($word)$($word2)$($n)$($letterList.ToUpper() | Get-Random)$($letterList.ToUpper() | Get-Random)"
+            $pass = "$($word)$($word2)$($nn)$($letterList.ToUpper() | Get-Random)"
             Break
         }
         3 { 
@@ -57,7 +54,7 @@ function GeneratePassword {
             Break
         }
         5 { 
-            $passArr = $n, $nn, $word, $word2, ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random),($letterList.ToUpper() | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random) | Get-Random -Shuffle
+            $passArr = $n, $nn, $word, ($letterList | Get-Random), ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random),($letterList.ToUpper() | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random) | Get-Random -Shuffle
             $pass = [String]::Join("",$passArr)
             Break
         }
@@ -69,25 +66,25 @@ function CrossCounterListUsers {
           ___  ___  __   __
     |  | /__' |__  |__) /__' 
     \__/ .__/ |___ |  \ .__/ 
-----------------------------------------------------------------------------------"
+----------------------------------------------------------------------------------" -ForegroundColor DarkGreen
     $uL = Get-MgUser -All -Count userCount -ConsistencyLevel eventual -OrderBy DisplayName
     $i = 0
     Do{
         Write-Host "$($i+1). $($uL[$i].DisplayName)       --- ---       $($uL[$i].Mail)"
         $i++
     }Until($i -ge ($userCount))
-    Write-Host "`n$userCount users - Listed alphabetically by display name"
-    Write-Host "Press < ALT + SPACE , E , F > to search within Powershell console"
+    Write-Host "`n$userCount users - Listed alphabetically by display name" -ForegroundColor DarkGray
+    Write-Host "Press < ALT + SPACE , E , F > to search within Powershell console" -ForegroundColor DarkGray
     return $uL
 }
 
 function CrossCounterListGroups {
     Write-Host "`n"
-    Write-Host "===============================================================================                                                            
+    Write-Host "===============================================================================                                                     
      __   __   __        __   __  
     / _' |__) /  \ |  | |__) /__' 
-    \__> |  \ \__/ \__/ |    .__/ "
-    Write-Host "================================================================================"
+    \__> |  \ \__/ \__/ |    .__/ 
+================================================================================" -ForegroundColor DarkMagenta
     Write-Host "`n"
     $i = 0
     $gL = Get-MgGroup -All -Count groupCount -ConsistencyLevel eventual -OrderBy DisplayName | Sort-Object -Property @{Expression = "DisplayName"}
@@ -95,8 +92,8 @@ function CrossCounterListGroups {
         Write-Host "$($i+1). $($gL[$i].DisplayName) --- $($gL[$i].Description)"
         $i++
     }Until($i -ge ($groupCount))
-    Write-Host "`n$groupCount groups - Listed alphabetically"
-    Write-Host "Press < ALT + SPACE , E , F > to search within Powershell console"
+    Write-Host "`n$groupCount groups - Listed alphabetically" -ForegroundColor DarkGray
+    Write-Host "Press < ALT + SPACE , E , F > to search within Powershell console" -ForegroundColor DarkGray
     return $gL
 }
 function CrossCounterListMembers {
@@ -104,10 +101,10 @@ function CrossCounterListMembers {
         $GroupId
     )
     $groupSelected = Get-MgGroup -GroupId $groupID
-    Write-Host "================================================================================================="
-    Write-Host "Editing $($groupSelected.DisplayName)"
-    Write-Host "(Note changes may take a minute or two to cache)"
-    Write-Host "=================================================================================================`n"
+    Write-Host "=================================================================================================" -ForegroundColor DarkGreen
+    Write-Host "Editing $($groupSelected.DisplayName)" -ForegroundColor Green
+    Write-Host "(Note changes may take a minute or two to cache)" -ForegroundColor DarkGray
+    Write-Host "=================================================================================================`n" -ForegroundColor DarkGreen
     $i = 0
     #The objects in this array only contain the user IDs of the group members (as well as other inconsequential info)
     $mIdL = Get-MgGroupMember -GroupId $GroupId -Count memberCount -ConsistencyLevel eventual
@@ -134,10 +131,10 @@ function CrossCounterAddMember {
     )
     Do {
         $groupSelected = Get-MgGroup -GroupId $groupID
-        Write-Host "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        Write-Host " ADDING members to $($groupSelected.DisplayName)"
-        Write-Host " (Note changes may take a minute or two to cache)"
-        Write-Host "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+        Write-Host "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" -ForegroundColor DarkGreen
+        Write-Host " ADDING members to $($groupSelected.DisplayName)" -ForegroundColor Magenta
+        Write-Host " (Note changes may take a minute or two to cache)" -ForegroundColor DarkGray
+        Write-Host "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" -ForegroundColor DarkGreen
     #get the ids of all the members of the group
         $mIdL = Get-MgGroupMember -GroupId $groupID -Count memberCount -ConsistencyLevel eventual
         $mL = $mIdL.Id
@@ -184,10 +181,10 @@ function CrossCounterRemoveMember {
         $GroupId
     )
     $groupSelected = Get-MgGroup -GroupId $groupID
-    Write-Host "------------------------------------------------------------------------------------------------"
-    Write-Host " REMOVING members from $($groupSelected.DisplayName)"
-    Write-Host " (Note changes may take a minute or two to cache)"
-    Write-Host "------------------------------------------------------------------------------------------------`n"
+    Write-Host "------------------------------------------------------------------------------------------------"-ForegroundColor DarkRed
+    Write-Host " REMOVING members from $($groupSelected.DisplayName)" -ForegroundColor Magenta
+    Write-Host " (Note changes may take a minute or two to cache)" -ForegroundColor DarkGray
+    Write-Host "------------------------------------------------------------------------------------------------`n"-ForegroundColor DarkRed
     $i = 0
     #The objects in this array only contain the user IDs of the group members (as well as other inconsequential info)
     $mIdL = Get-MgGroupMember -GroupId $GroupId -Count memberCount -ConsistencyLevel eventual
@@ -222,7 +219,7 @@ function CrossCounterRemoveMember {
                     Write-Host $_
                 }
             }else{
-                Write-Host "Invalid Input - Could not find user..."
+                Write-Host "Invalid Input - Could not find user..." -ForegroundColor DarkRed
             }
         }
     }Until ($chosenUser -eq "q")
@@ -233,31 +230,31 @@ function CrossCounterEditUser {
     )
     Do {
         $User = Get-MgUser -UserId $userID
-        Write-Host "================================================================================================="
-        Write-Host "Editing $($User.DisplayName)"
-        Write-Host "(Note changes may take a minute or two to cache, only options 1-5 preview in this window)"
-        Write-Host "================================================================================================="
+        Write-Host "=================================================================================================" -ForegroundColor Blue
+        Write-Host "Editing $($User.DisplayName)" -ForegroundColor Green
+        Write-Host "(Note changes may take a minute or two to cache, only options 1-7 preview in this menu)" -ForegroundColor DarkGray
+        Write-Host "=================================================================================================" -ForegroundColor Blue
 <# 
-There appears to be a bug?? where attributes like 'CompanyName' and 'PostalCode' cannot be called in the same way as 
-'DisplayName, GivenName, MobilePhone, etc.
+Certain attributes like 'CompanyName' and 'PostalCode' can only be called va Select-Object... and even then
+there appears to be a bug where some properties refuse to display correctly. As a result- not all Properties in this list
+show a 'preview'; you have to take the script at its word.
 Also, edits take a few moments to tick-over, so while it may appear like changes are not being made- be assured that they are. 
 #>
-        Write-Host "
+Write-Host "
 [1.] Display Name:            $($User.DisplayName)
 [2.] First Name:              $($User.GivenName)
 [3.] Last Name:               $($User.Surname)
 [4.] Job Title:               $($User.JobTitle)
 [5.] Mobile Phone:            $($User.MobilePhone)
-[6.] Email Address:           $($User.Mail)
-[7.] Department               $($User.Department)
-[8.] Street address           $($User.StreetAddress)
-[9.] City                     $($User.City)
-[10.] Postal Code             $($User.PostalCode)
-[11.] Country                 $($User.Country)
-[12.] Company Name            $($User.CompanyName)
-[13.] Remove from Group
-[14.] Add to Group
-[15.] Reset Password
+[6.] Business Phone:          $($User.BusinessPhones)
+[7.] Email Address:           $($User.Mail)
+[8.] Department               $($User.Department)
+[9.] Street address           $($User.StreetAddress)
+[10.] City                    $($User.City)
+[11.] Postal Code             $($User.PostalCode)
+[12.] Country                 $($User.Country)
+[13.] Company Name            $($User.CompanyName)
+[14.] Reset Password 
 "
         $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
 
@@ -295,8 +292,12 @@ Also, edits take a few moments to tick-over, so while it may appear like changes
                 Update-MgUser -UserId $userID -MobilePhone $editMade
                 Break
             }
-
-            6 {
+            6{
+                $editMade = Read-Host -Prompt "What would you like to change '$($User.BusinessPhones)' to?"
+                Update-MgUser -UserId $userID -BusinessPhones $editMade
+                Break
+            }
+            7 {
                 $editMade = CrossCounterEditUserMail -userID $userID
                 if($editMade -ne ""){
                     Try {
@@ -304,153 +305,43 @@ Also, edits take a few moments to tick-over, so while it may appear like changes
                         Update-MgUser -UserId $userID -Mail $editMade
                         Write-Host "Success - New email is: $($editMade)"
                     }Catch{
-                        Write-Host "Error - Email update failed"
+                        Write-Host "Error - Email update failed"  -ForegroundColor DarkRed
                     }
                 }
                 Break
             }
-
-            7 {
+            8 {
                 $editMade = Read-Host -Prompt "What would you like to change the department to?"
                 Update-MgUser -UserId $userID -Department $editMade
                 Break
             }
-            8 {
+            9 {
                 $editMade = Read-Host -Prompt "What would you like to change the street address to?"
                 Update-MgUser -UserId $userID -StreetAddress $editMade
                 Break
             }
-            9 {
+            10 {
                 $editMade = Read-Host -Prompt "What would you like to change the city to?"
                 Update-MgUser -UserId $userID -City $editMade
                 Break
             }
-            10 {
+            11 {
                 $editMade = Read-Host -Prompt "What would you like to change postal code to?"
                 Update-MgUser -UserId $userID -PostalCode $editMade
                 Break
             }
-            11 {
+            12 {
                 $editMade = Read-Host -Prompt "What would you like to change the Country to?"
                 Update-MgUser -UserId $userID -Country $editMade
                 Break
             }
-            12 {
+            13 {
                 $editMade = Read-Host -Prompt "What would you like to change the company name to?"
                 Update-MgUser -UserId $userID -CompanyName $editMade
                 Break
             }
-            13 { # Remove from groups
-                $chosenGroup = ''
-                Write-Host "`n-----------------------------------------------------------------------"
-                Write-Host "   Remove from group..."
-                Write-Host "(changes take a minute or so to appear)"
-                Write-Host "-----------------------------------------------------------------------`n`n"
-                Do {
-                    $groupMemberships = Get-MgUserMemberOf -UserID $userID -Count membershipCount -ConsistencyLevel eventual
-                    $groupMemberships = $groupMemberships.ID
-                    if($membershipCount -gt 1){
-                        $i = 0
-                        Do {
-                            Write-Host "$($i+1). $((Get-MgGroup -GroupId $groupmemberships[$i] | Where-Object {$_.DisplayName -ne "All Users"}).DisplayName)"
-                            $i++
-                        }Until($i -ge $groupMemberships.Length)
-                        $chosenGroup = Read-Host -Prompt "Which group would you like to leave? (or 'q' to go back)`n"
-                        if($chosenGroup -ne 'q'){
-                            $groupSelected = (Get-MgGroup -GroupId $groupMemberships[$chosenGroup-1])
-                            if($groupSelected){
-                                Write-Host "Removing $($User.DisplayName) from $($groupSelected.DisplayName)..."
-                                Try {
-                                    Remove-MgGroupMemberByRef -GroupId $groupSelected.ID -DirectoryObjectId $userID
-                                    Write-Host
-                                }Catch{
-                                    Write-Host "...Failed"
-                                }
-                            }else{
-                                Write-Host "Error - No group found"
-                            }
-                        }
-                    }else{
-                        "$($User.DisplayName) is in only in one group - '$((Get-MgGroup -GroupId $groupmemberships).DisplayName)'`n"
-                        $chosenGroup = 'q'
-                    }
-                } Until ($chosenGroup -eq 'q')
-                Break
-            }
-            14 { # add to groups
-                Do {
-                    #get the ids of all the groups user is member of
-                    $groupMemberships = Get-MgUserMemberOf -UserID $userID -Count membershipCount -ConsistencyLevel eventual
-                    $groupmemberships = $groupmemberships.ID
-                    #get the ids of all the groups in tenant
-                    $gL = (Get-MgGroup -All).ID
-                    if(membershipCount -gt 1){
-                        #make a list of the user id for users not in both lists
-                        $pg = $gL | Where-Object { $_ -notin $groupMemberships }
-                        $potentialGroups = [Object[]]::new($pg.Length)
-                        $i = 0
-                        #convert these extracted group ids into group objects
-                        Do {
-                            $potentialGroups[$i] = Get-MgGroup -GroupId $pg[$i]
-                            $i++
-                        } Until($i -ge $pg.Length)
-                        #now we re-arrange the array of user objects alphabetically by display name
-                        $potentialGroups = $potentialGroups | Sort-Object -Property @{Expression = "DisplayName"}
-                        $i = 0
-                        #and write the alphabetical list of users
-                        Do{
-                            Write-Host "$($i+1). $(($potentialGroups[$i]).DisplayName)"
-                            $i++
-                        }Until($i -ge ($potentialGroups.Length))
-                    }else{
-                        $potentialGroups = Get-MgGroup -All | Where-Object {$_.DisplayName -ne "All Users"}
-                    }
-                    #pick a user and they get added to the group
-                            $chosenGroup = Read-Host -Prompt "`nEnter the number listed next to the group you want to add $($User.DisplayName) to (or 'q' to go back)`n"
-                            if (($chosenGroup -ne 'q') -and ($chosenGroup -ne "")){
-                                $group = $potentialGroups[$chosenGroup-1]
-                                if($group){
-                                    Write-Host "Adding $($User.DisplayName) to $($group.DisplayName)..."
-                                    Try {
-                                        New-MgGroupMember -GroupId $group.ID -DirectoryObjectId $User.ID
-                                        Write-Host "SUCCESS! Added $($User.DisplayName) to $($group.DisplayName)"
-                                    }Catch{
-                                        Write-Host "FAILED to add $($User.DisplayName) to $($group.DisplayName)"
-                                    }
-                                }else{
-                                    Write-Host "Invalid Input - Could not find user..."
-                                }
-                            }
-                } Until ($chosenGroup -eq 'q')
-                Break
-            }
-            15 {
-                #Reset Password
-                Write-Host "/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\"
-                Write-Host " Reset Password..."
-                Write-Host "/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\`n"
-                Write-Host "
-                CrossCounter Passwords don't contain the user's ID and are least 8 characters long with at least 3 of the following: 
-                upper-case letters, lower-case letters, numbers and symbols.
-                "
-                $editMade = CrossCounterEditUserPassword -userID $userID
-                if(($editMade -ne "") -and $editMade -ne "q"){
-                    try {
-                        $authMethod = Get-MgUserAuthenticationMethod -UserId $userID
-                        Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $editMade
-                        Write-Host "Password Reset... SUCCESS"
-                        Write-Host "
-PASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORD
-PASS                                                                                        WORD
-                                    $($editMade)        
-PASS                                                                                        WORD
-PASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORD
-"
-                    }catch{
-                        Write-Host $_
-                        Write-Host "Password Reset... FAILED"
-                    }
-                }
+            14 {
+                CrossCounterEditUserPassword -userID $userID
                 Break
             }
         }
@@ -537,6 +428,14 @@ function CrossCounterEditUserPassword {
     param (
         $userID
     )
+    #Reset Password
+    Write-Host "/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\" -ForegroundColor DarkBlue
+    Write-Host " Reset Password..."
+    Write-Host "/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\`n" -ForegroundColor DarkBlue
+    Write-Host "
+CrossCounter Passwords don't contain the user's ID and are least 8 characters long with at least 3 of the following: 
+Upper-case letter, lower-case letter, number, symbol."
+#populate list of preset options
     $i = 0
     Do {
         $editMade = ""
@@ -562,61 +461,78 @@ function CrossCounterEditUserPassword {
         $i++
         $passOpt[$i] = "$(GeneratePassword -PWStrength 5)"
         Write-Host "`n$($i). $($passOpt[$i])"
+        #prot user to select option
         $editMade = Read-Host -Prompt "`nPick an option above to reset the user's password`n"
-
     }Until($editMade -ne "")
-    
     switch ($editMade) {
         0 { 
-            return ""
+            $newPass =  ""
             Break
         }
         1 {
-            Write-Host
             $custInput = Read-Host -Prompt "-CUSTOM-`nPasswords can't contain the user's ID and need to be at least 8 characters long with at least 3 of the following: upper-case letters, lower-case letters, numbers and symbols.`nWhat would you like to change the password to?`n"
             if($custInput.Length -ge 8){
-            return $custInput
+            $newPass =  $custInput
             }else{
                 Write-Host "Error - Passwords can't contain the user's ID and should be at least 8 characters long with at least 3 of the following: upper-case letters, lower-case letters, numbers and symbols."
-                Write-Host "Plase try again with a different password."
-                return ""
+                Write-Host "Plase try again with a different password." -ForegroundColor Red
+                $newPass =  ""
             }
             Break
         }
         2 {
-            return ""
+            $newPass =   ""
             Break
         }
         'q' {
-            return ""
+            $newPass =   ""
             Break
         }
         Default {
             if($passOpt[$editMade].Length -ge 8){
-                return $passOpt[$editMade]
+                $newPass = $passOpt[$editMade]
             }else{
                 Write-Host "Error - Passwords can't contain the user's ID and should be at least 8 characters long with at least 3 of the following: upper-case letters, lower-case letters, numbers and symbols."
-                Write-Host "Plase try again with a different password."
-                return ""
+                Write-Host "Plase try again with a different password."  -ForegroundColor Red
+                $newPass =  ""
             }
-            
         }
     }
-    
+    if(($newPass -ne "")){
+        $reqnextsign = Read-Host -Prompt "Require Change on next sign-in? (y/n)"
+        try {
+            $authMethod = Get-MgUserAuthenticationMethod -UserId $userID
+            if(($reqnextsign -eq 'y') -or ($reqnextsign -eq 'Y')){
+                Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $newPass -RequireChangeOnNextSignIn
+            }else{
+                Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $newPass
+            }
+            Write-Host "Password Reset... SUCCESS" -ForegroundColor DarkGreen
+            Write-Host "
+    PASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORD
+    PASS                                                                                        WORD" -ForegroundColor Blue
+Write-Host "   ----------------------------------->        $($newPass)        <-----------------------------------"
+Write-Host "    PASS                                                                                        WORD
+    PASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORD" -ForegroundColor Blue
+        }catch{
+            Write-Host $_ -ForegroundColor Red
+            Write-Host "Password Reset... FAILED" -ForegroundColor DarkRed
+        }
+    }
 }
 function CrossCounterEditAll {
     Do {
-        Write-Host "`n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
-        Write-Host " - WARNING - "
-        Write-Host "EDITING ** ALL ** USERS IN TENANT"
-        Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
+        Write-Host "`n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" -ForegroundColor DarkRed
+        Write-Host " - WARNING - " -ForegroundColor Red
+        Write-Host "EDITING ** ALL ** USERS IN TENANT" -ForegroundColor Yellow
+        Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" -ForegroundColor DarkRed
         Write-Host "`n
-[1.] Company Name            $($User.CompanyName)`n
-[2.] Department               $($User.Department)`n
-[3.] Street address           $($User.StreetAddress)`n
-[4.] City                     $($User.City)`n
-[5.] Postal Code              $($User.PostalCode)`n
-[6.] Country                 $($User.Country)`n
+[1.] Company Name            $($User.CompanyName)
+[2.] Department               $($User.Department)
+[3.] Street address           $($User.StreetAddress)
+[4.] City                     $($User.City)
+[5.] Postal Code              $($User.PostalCode)
+[6.] Country                 $($User.Country)
 "
         $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
         switch ($chosenOption) {
@@ -628,9 +544,9 @@ function CrossCounterEditAll {
                         $User = $userList[($i)]
                         $userID = $User.ID
                         Update-MgUser -UserId $userID -CompanyName $editMade
-                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated" -ForegroundColor DarkGreen
                     }Catch{
-                        Write-Host "$($i). ERROR"
+                        Write-Host "$($i). ERROR" -ForegroundColor Red
                     }
                     $i++
                 }Until($i -ge ($userCount))
@@ -644,9 +560,9 @@ function CrossCounterEditAll {
                         $User = $userList[($i)]
                         $userID = $User.ID
                         Update-MgUser -UserId $userID -Department $editMade
-                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"  -ForegroundColor DarkGreen
                     }Catch{
-                        Write-Host "$($i). ERROR"
+                        Write-Host "$($i). ERROR" -ForegroundColor Red
                     }
                     $i++
                 }Until($i -ge ($userCount))
@@ -660,9 +576,9 @@ function CrossCounterEditAll {
                         $User = $userList[($i)]
                         $userID = $User.ID
                         Update-MgUser -UserId $userID -StreetAddress $editMade
-                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"  -ForegroundColor DarkGreen
                     }Catch{
-                        Write-Host "$($i). ERROR"
+                        Write-Host "$($i). ERROR" -ForegroundColor Red
                     }
                     $i++
                 }Until($i -ge ($userCount))
@@ -676,9 +592,9 @@ function CrossCounterEditAll {
                         $User = $userList[($i)]
                         $userID = $User.ID
                         Update-MgUser -UserId $userID -City $editMade
-                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"  -ForegroundColor DarkGreen
                     }Catch{
-                        Write-Host "$($i). ERROR"
+                        Write-Host "$($i). ERROR" -ForegroundColor Red
                     }
                     $i++
                 }Until($i -ge ($userCount))
@@ -692,9 +608,9 @@ function CrossCounterEditAll {
                         $User = $userList[($i)]
                         $userID = $User.ID
                         Update-MgUser -UserId $userID -PostalCode $editMade
-                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"  -ForegroundColor DarkGreen
                     }Catch{
-                        Write-Host "$($i). ERROR"
+                        Write-Host "$($i). ERROR" -ForegroundColor Red
                     }
                     $i++
                 }Until($i -ge ($userCount))
@@ -708,9 +624,9 @@ function CrossCounterEditAll {
                         $User = $userList[($i)]
                         $userID = $User.ID
                         Update-MgUser -UserId $userID -Country $editMade
-                        Write-Host "$($i+1). editing $($userList[$i].DisplayName) - Updated"
+                        Write-Host "$($i+1). editing $($userList[$i].DisplayName) - Updated"  -ForegroundColor DarkGreen
                     }Catch{
-                        Write-Host "$($i). ERROR"
+                        Write-Host "$($i). ERROR" -ForegroundColor Red
                     }
                     $i++
                 }Until($i -ge ($userCount))
@@ -722,11 +638,11 @@ function CrossCounterEditAll {
 
 #================================================================================
 
-Write-Host "Connecting... Sign into the popup window with your admin account."
+Write-Host "Connecting... Sign into the popup window with your admin account."  -ForegroundColor Green
 Write-Host "..."
 # Login to Microsoft Admin with AAD Read/Write Permissions
 Connect-MgGraph -Scopes "User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All"
-Write-Host ".`n..`n...`n....`n.....`n....`n...`n..`n."
+Write-Host "`n`n" -ForegroundColor Green
 
 #----------------------------------------------------------------------------------
 #                           FIRST STARTUP
@@ -804,7 +720,7 @@ Do {
                                             Write-Host $member.DisplayName
                                             CrossCounterEditUser -userID $member.ID
                                         } Catch {
-                                            Write-Host "Invalid Input - No member listed under that"
+                                            Write-Host "Invalid Input - No member listed under that"   -ForegroundColor Red
                                         }
                                     }
                                 }
@@ -832,7 +748,7 @@ Do {
         }
 # catch for blank input
         "" {
-            Write-Host "Please input something..."
+            Write-Host "Please input something..."   -ForegroundColor Red
             break
         }
 
@@ -845,8 +761,7 @@ Do {
                 $User = Get-MgUser -UserId $userID
                 CrossCounterEditUser -userID $userID
             } Catch {
-                Write-Host "Invalid Input - No user found listed under that number..."
-                Write-Host ""
+                Write-Host "Invalid Input - Enter one of the menu commands...`n"  -ForegroundColor Red
             }
         }
     }
