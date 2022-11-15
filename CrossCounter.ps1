@@ -662,7 +662,6 @@ Do {
 |   all    - edit ALL users in tenant                            |
 |   groups - list groups in tenant                               |
 |   users  - re-list users                                       |
-|   off    - User Offboarding                                    |
 |   q      - sign out & exit                                     |
 |----------------------------------------------------------------|`n"
     switch ($userInput1) {
