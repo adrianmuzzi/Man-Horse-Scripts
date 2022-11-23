@@ -11,7 +11,7 @@ The `MAIN MENU` is the highest level menu in Cross Counter. Upon first singing i
  Leads to the *Edit User* menu for the user selected from the user list.
 
 - ### all
-Leads to the *edit all users* menu.
+Leads to the *Edit All Users* menu.
 
 - ### groups
 Leads to the *Groups Menu*.
@@ -86,4 +86,4 @@ Returns to *Groups Menu*
 
 **What scopes does Cross Counter use to connect?**
 
->` Connect-MgGraph -Scopes "User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All"`
+>` Connect-MgGraph -Scopes "User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All",Calendars.ReadWrite.Shared`

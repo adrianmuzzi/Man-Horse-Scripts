@@ -77,7 +77,6 @@ function CrossCounterListUsers {
     Write-Host "Press < ALT + SPACE , E , F > to search within Powershell console" -ForegroundColor DarkGray
     return $uL
 }
-
 function CrossCounterListGroups {
     Write-Host "`n"
     Write-Host "===============================================================================                                                     
@@ -254,7 +253,7 @@ Write-Host "
 [11.] Postal Code             $($User.PostalCode)
 [12.] Country                 $($User.Country)
 [13.] Company Name            $($User.CompanyName)
-[14.] Reset Password 
+[14.] Reset Password
 "
         $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
 
@@ -636,20 +635,24 @@ function CrossCounterEditAll {
     } Until ($chosenOption -eq 'q')
 }
 
-#================================================================================
-
+#================================================================================================================================================================================================================================================
+#================================================================================================================================================================================================================================================
+#================================================================================================================================================================================================================================================
+#
 Write-Host "Connecting... Sign into the popup window with your admin account."  -ForegroundColor Green
 Write-Host "..."
 # Login to Microsoft Admin with AAD Read/Write Permissions
-Connect-MgGraph -Scopes "User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All"
+Connect-MgGraph -Scopes "User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All","Calendars.ReadWrite.Shared"
 Write-Host "`n`n" -ForegroundColor Green
-
+#
+#================================================================================================================================================================================================================================================
+#================================================================================================================================================================================================================================================
+#================================================================================================================================================================================================================================================
 #----------------------------------------------------------------------------------
 #                           FIRST STARTUP
 #----------------------------------------------------------------------------------
 # List all the users in the tenant
 $userList = CrossCounterListUsers
-
 
 # MAIN MENU ++++++++++++++++++++++++++++++++++++++++++++++++++++++|
 Do {

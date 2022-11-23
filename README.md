@@ -14,19 +14,19 @@ At a glance:
 ## [Still in Development:](./Dev/)
 
 #### **Alumandin**
-
 A user off boarding script.
 
 #### **Duais**
-
 For creating new users/duplicating user information in a M365 tenant.
 
 #### **Maluckyday**
-
-Uses the Exchange Online module to make changes to calendars.
+Playing around with the Exchange Online module.
 
 #### **Serpentine**
 For making changes to groups in a Azure Active Directory tenant.
 
 #### **Hyperno**
 Detects and removes bloatware commonly found on Windows devices.
+
+#### **Arcasia**
+Edge Profile Managment and admin portal shortcuts.
