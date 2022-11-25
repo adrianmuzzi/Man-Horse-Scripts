@@ -2,6 +2,9 @@
 I plan for this to  be a repository of PowerShell scripts I have developed to shave milliseconds off of the time it takes me to do something at work.
 They are all named for Horses who have raced in the Melbourne Cup.
 
+## [Acrasia](./Acrasia/)
+Edge Profile Managment and admin shortcuts.
+
 ## [Cross Counter](./CrossCounter/)
 
 *Cross Counter* is for making fast changes to user profiles in a Microsoft 365 tenant with the MgGraph powershell module. 
@@ -27,6 +30,3 @@ For making changes to groups in a Azure Active Directory tenant.
 
 #### **Hyperno**
 Detects and removes bloatware commonly found on Windows devices.
-
-#### **Arcasia**
-Edge Profile Managment and admin portal shortcuts.

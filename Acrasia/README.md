@@ -1,4 +1,5 @@
 # Acrasia
+__Ver 0.1__
 
 *Acrasia* is for managing M365 tenants spread across multiple Edge profiles.
 
@@ -31,6 +32,6 @@ Re-lists the profiles loaded by Acrasia.
 Runs Acrasia setup again
 
 - ### q
-'q' in the main menu will exit powershell.
+'q' in the main menu will exit PowerShell.
 
 ## Profile Menu

@@ -1,12 +1,13 @@
 <#Barclay McClay - 0.1 - 2022 #>
-Write-Host "
+Write-Host @"
 █████████████████████████████████████████
 ██▀▄─██─▄▄▄─█▄─▄▄▀██▀▄─██─▄▄▄▄█▄─▄██▀▄─██
 ██─▀─██─███▀██─▄─▄██─▀─██▄▄▄▄─██─███─▀─██
-▀▄▄▀▄▄▀▄▄▄▄▄▀▄▄▀▄▄▀▄▄▀▄▄▀▄▄▄▄▄▀▄▄▄▀▄▄▀▄▄▀" -ForegroundColor Green
+▀▄▄▀▄▄▀▄▄▄▄▄▀▄▄▀▄▄▀▄▄▀▄▄▀▄▄▄▄▄▀▄▄▄▀▄▄▀▄▄▀
+"@ -ForegroundColor Green
 Write-Host "=========================================`n" -ForegroundColor DarkGreen
 
-$profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like *"Profile "*
+$profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like "*Profile *"
 Write-Host "$($profileList.count + 1) Edge Profiles detected"
 
 function AcrasiaSetup {
@@ -40,7 +41,7 @@ function AcrasiaListProfiles {
     }Until($i -ge $ACRASIA_LIST.count)
 }
 
-function ArcasiaShortcuts {
+function AcrasiaShortcuts {
     Do{
     Write-Host "    $($selectedName)            " -ForegroundColor Black -BackgroundColor Blue
     Write-Host "[1.] AAD" -ForegroundColor Green      #https://portal.azure.com/#view/Microsoft_AAD_UsersAndTenants/UserManagementMenuBlade/~/AllUsers
@@ -48,7 +49,7 @@ function ArcasiaShortcuts {
     Write-Host "[3.] Exchange Admin Center" -ForegroundColor Green         #https://admin.exchange.microsoft.com/#/mailboxes
     Write-Host "[4.] MEM / Intune" -ForegroundColor Green   #https://endpoint.microsoft.com/#home
     Write-Host "[5.] MS Portals" -ForegroundColor Green     #https://msportals.io/?search=
-    Write-Host "[Q.] <-Back`n" -ForegroundColor Gray
+    Write-Host "[Q.] Go Back`n" -ForegroundColor Gray
     $link = $false
     $sc = Read-Host
     switch ($sc){
@@ -68,9 +69,13 @@ function ArcasiaShortcuts {
     }Until(($sc -eq "q") -or ($sc -eq "Q"))
 }
 
+function AcrasiaGetBookmarks {
+
+}
+
 if(-not(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt" -PathType Leaf)){
     Write-Host "It looks like you do not have any Acrasia Data..." -ForegroundColor Red
-    Write-Host "It will take <$((($profileList.count + 1)*8)/60)> minutes to run through a setup process wherein you will manually run through your Edge profiles with Acrasia."
+    Write-Host "It will take ~$((($profileList.count + 1)*8)/60) minutes to run through a setup process wherein you will manually run through your Edge profiles with Acrasia."
     $setupOpt = Read-Host -Prompt "Run Setup? [y/n]"
     switch ($setupOpt){
         "y" {
@@ -90,25 +95,25 @@ if(-not(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaD
 AcrasiaListProfiles -ACRASIA_LIST $AcrasiaProfiles
     
 Do{
-    Write-Host "                         ACRASIA - MAIN MENU                      " -ForegroundColor Black -BackgroundColor Green
-    Write-Host "|   Enter the number listed next to a profile above, or:         |" -ForegroundColor Green -BackgroundColor Black
-    Write-Host "|   setup  - run through Acrasia setup again                     |" -ForegroundColor Green -BackgroundColor Black
-    Write-Host "|   list   - list the profiles setup in Acrasia                  |" -ForegroundColor Green -BackgroundColor Black
-    Write-Host "|   q      - quit                                                |" -ForegroundColor Green -BackgroundColor Black
+    Write-Host '                        ACRASIA - MAIN MENU                      '-ForegroundColor Black -BackgroundColor Green
+    Write-Host '|   Enter the number listed next to a profile above, or:         |' -ForegroundColor Green -BackgroundColor Black
+    Write-Host '|   setup  - run through Acrasia setup again                     |' -ForegroundColor Green -BackgroundColor Black
+    Write-Host '|   list   - list the profiles setup in Acrasia                  |' -ForegroundColor Green -BackgroundColor Black
+    Write-Host '|   q      - quit                                                |' -ForegroundColor Green -BackgroundColor Black
     Write-Host "|----------------------------------------------------------------|`n" -ForegroundColor Green -BackgroundColor Black
     $opt1 = Read-Host
     switch ($opt1) {
-        "list"  {
+        'list'  {
             AcrasiaListProfiles -ACRASIA_LIST $AcrasiaProfiles
             Break
         }
-        "setup" {
-            $profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like *"Profile "*
-            Write-Host "$($profileList.count + 1) Edge Profiles detected"
+        'setup' {
+            $profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like '*Profile *'
+            #Write-Host "$($profileList.count + 1) Edge Profiles detected`"
             $AcrasiaProfiles = AcrasiaSetup
             break
         }
-        "q"     {
+        'q'     {
             break
         }
         Default {
@@ -116,15 +121,15 @@ Do{
                 Try {
                     $selectedProfile = $($AcrasiaProfiles.keys)[$opt1-1]
                     $selectedName = $($AcrasiaProfiles.values)[$opt1-1]
-                    ArcasiaShortcuts
+                    AcrasiaShortcuts
                 }Catch{
-                    Write-Host "ERRCATCH - Invalid Input" -ForegroundColor Red
+                    Write-Host 'ERRCATCH - Invalid Input' -ForegroundColor Red
                 } 
                 Break
             }
         }
     }
-}Until($opt1 -eq "q")
+}Until($opt1 -eq 'q')
 #we out of the main loop!
 exit
 ##########################################
