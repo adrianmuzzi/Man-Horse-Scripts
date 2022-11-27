@@ -135,6 +135,7 @@ Do{
 [2.] Edge
 [3.] All
 [4.] Custom
+[5.] Log to file
 [Q.] Quit
 "@ -ForegroundColor Yellow
 	$mm = Read-Host
@@ -266,6 +267,14 @@ Do{
 				$HiJinxedProfile
 				Break
 			}
+			5 {
+				if($log){
+					$log > "$($parentFolder)\HiJinx_Log.txt"
+					Write-Host "Written to $($parentFolder)\HiJinx_Log.txt" -ForegroundColor Yellow
+				}else{
+					Write-Host "Nothing in the log to write to file yet..." -ForegroundColor Red
+				}
+			}
 			"q" {
 				exit
 			}
@@ -273,13 +282,6 @@ Do{
 				Write-Host "Input the number of an option above, or 'q' to Quit." -ForegroundColor Red
 				Break
 			}
-		}
-
-		Write-Host "Write this to a log file?" -ForegroundColor Yellow
-		$lm = Read-Host -Prompt "[y/n]"
-		if($lm -eq "y"){
-			$log > "$($parentFolder)\HiJinx_Log.txt"
-			Write-Host "Written to $($parentFolder)\HiJinx_Log.txt" -ForegroundColor Yellow
 		}
 
 }Until($mm -eq "q")
