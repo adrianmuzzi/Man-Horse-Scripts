@@ -50,7 +50,8 @@ function AcrasiaShortcuts {
     Write-Host "[2.] M365 Admin Portal" -ForegroundColor Green    #https://portal.microsoft.com/Adminportal/Home#/users
     Write-Host "[3.] Exchange Admin Center" -ForegroundColor Green         #https://admin.exchange.microsoft.com/#/mailboxes
     Write-Host "[4.] MEM / Intune" -ForegroundColor Green   #https://endpoint.microsoft.com/#home
-    Write-Host "[5.] MS Portals" -ForegroundColor Green     #https://msportals.io/?search=
+    Write-Host "[5.] MS Portals" -ForegroundColor Green     #https://msportals.io/?search='
+    Write-Host "[6.] Office.com" -ForegroundColor Green
     Write-Host "[B.] Bookmarks" -ForegroundColor DarkGreen
     Write-Host "[Q.] Go Back`n" -ForegroundColor Gray
     $link = $false
@@ -62,6 +63,7 @@ function AcrasiaShortcuts {
         3   {$link = "https://admin.exchange.microsoft.com/#/mailboxes" }
         4   {$link = "https://endpoint.microsoft.com/#home" }
         5   {$link = "https://msportals.io/?search=" }
+        6   {$link = "https://office.com" }
         "b" {
             $bk = AcrasiaGetBookmarks -ProfileKey $selectedProfile
             $i=0
