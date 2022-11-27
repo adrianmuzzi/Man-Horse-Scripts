@@ -6,13 +6,15 @@ They are all named for Horses who have raced in the Melbourne Cup.
 Edge Profile Managment and admin shortcuts.
 
 ## [Cross Counter](./CrossCounter/)
-
 *Cross Counter* is for making fast changes to user profiles in a Microsoft 365 tenant with the MgGraph powershell module. 
 At a glance:
  - Edit user profile information such as name/location/phone number/email etc.
  - Reset user passwords.
  - Edit users' M365 group memberships.
  - Make profile changes to *all* the users in a tenant at once.
+
+## [HiJinx](./HiJinx/)
+HiJinx rips account login data from Chromium browsers like Chrome and Edge.
 
 ## [Still in Development:](./Dev/)
 

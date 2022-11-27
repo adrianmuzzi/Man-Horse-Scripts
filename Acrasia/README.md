@@ -16,14 +16,13 @@ Acrasia guides you through 'nicknaming' each of your Edge profiles. You can call
 
 On launch, Acrasia searches for a file called `%localappdata%\Local\Microsoft\Edge\User Data\_AcrasiaData.txt`. If no such file is found, Acrasia will prompt you to run through setup.
 
-'Setup' opens each of your Edge profiles one-by-one. You check what profile it is, and input your desired nickname for it into Acrasia. The second profile opens upon inputting a nickname for the first, and so on. It will continue through this process until your've nicknamed *all* of your Edge profiles, then it stores the collected data as a hash table in `_Acrasia.txt` (which Acrasia will create at the end of setup at the directory above).
+'Setup' opens each of your Edge profiles one-by-one. You check what profile it is, and input your desired nickname for it into Acrasia. The second profile opens upon inputting a nickname for the first, and so on. It will continue through this process until your've nicknamed *all* of your Edge profiles, then it stores the collected data as a hash table in `_Acrasia.txt` (see path above).
 
 ## Main Menu
 
 The `MAIN MENU`  is only acessible if you have an `_AcrasiaData.txt` file in Edge's User Data folder *(see 'Steup' above)*.
 
 -  ### Enter the number listed next to a profile above
-See *'Profile Menu*'
 
 - ### list
 Re-lists the profiles loaded by Acrasia.
