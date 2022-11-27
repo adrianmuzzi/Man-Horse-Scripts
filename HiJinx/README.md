@@ -3,9 +3,9 @@ Chromium browsers (such as *Chrome* and *Edge*) store their saved user logins & 
 
 `%LocalAppData%\<Chromium Version Directory>\User Data\<Chromium Profile>\Login Data`
 
-HiJinx converts this login data into something human-readable. It even has a decent go at decypting some of the passwords by employing the .NET System.Security class.
+HiJinx converts this login data into something human-readable. It even has a decent go at decrypting some of the passwords by employing the .NET System.Security class.
 
-This code is (like most of my scripts) incredibly verbose and extensivley commented. Efficient and elegent? No. But modular and easy to follow? I like to think so.
+This code is (like most of my scripts) incredibly verbose and extensivley commented. Efficient and elegant? No. But modular and easy to follow? I like to think so.
 
 ## Main Menu
 - ### Chrome
