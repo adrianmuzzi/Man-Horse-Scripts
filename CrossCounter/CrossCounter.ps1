@@ -2,7 +2,7 @@
 Write-Host " __   __   __   __   __      __   __            ___  ___  __  " -ForegroundColor Yellow
 Write-Host "/  ' |__) /  \ /__' /__'    /  ' /  \ |  | |\ |  |  |__  |__) " -ForegroundColor Yellow
 Write-Host "\__, |  \ \__/ .__/ .__/    \__, \__/ \__/ | \|  |  |___ |  \ " -ForegroundColor Yellow
-Write-Host "-- -- +++ -- +++ -- +++ -- +++ -- +++ -- +++ -- +++ -- +++ --`n" -ForegroundColor DarkYellow
+Write-Host "-- -- +++ -- +++ -- +++ -- +++ -- +++ -- +++ -- +++ -- +++ -- " -ForegroundColor DarkYellow
 #################################################################################
 #Check if we have the Microsoft Graph Powershell Module, If we don't; Install it
 if(-not (Get-Module Microsoft.Graph -ListAvailable)){
@@ -62,11 +62,13 @@ function GeneratePassword {
     return $pass
 }
 function CrossCounterListUsers {
-    Write-Host "`n----------------------------------------------------------------------------------
+    Write-Host @"
+===============================================================================
           ___  ___  __   __
     |  | /__' |__  |__) /__' 
     \__/ .__/ |___ |  \ .__/ 
-----------------------------------------------------------------------------------" -ForegroundColor DarkGreen
+===============================================================================
+"@ -ForegroundColor Yellow
     $uL = Get-MgUser -All -Count userCount -ConsistencyLevel eventual -OrderBy DisplayName
     $i = 0
     Do{
@@ -78,12 +80,13 @@ function CrossCounterListUsers {
     return $uL
 }
 function CrossCounterListGroups {
-    Write-Host "`n"
-    Write-Host "===============================================================================                                                     
+    Write-Host @"
+===============================================================================                                                     
      __   __   __        __   __  
     / _' |__) /  \ |  | |__) /__' 
     \__> |  \ \__/ \__/ |    .__/ 
-================================================================================" -ForegroundColor DarkMagenta
+================================================================================
+"@ -ForegroundColor DarkMagenta
     Write-Host "`n"
     $i = 0
     $gL = Get-MgGroup -All -Count groupCount -ConsistencyLevel eventual -OrderBy DisplayName | Sort-Object -Property @{Expression = "DisplayName"}
@@ -239,7 +242,7 @@ there appears to be a bug where some properties refuse to display correctly. As 
 show a 'preview'; you have to take the script at its word.
 Also, edits take a few moments to tick-over, so while it may appear like changes are not being made- be assured that they are. 
 #>
-Write-Host "
+Write-Host @"
 [1.] Display Name:            $($User.DisplayName)
 [2.] First Name:              $($User.GivenName)
 [3.] Last Name:               $($User.Surname)
@@ -254,7 +257,7 @@ Write-Host "
 [12.] Country                 $($User.Country)
 [13.] Company Name            $($User.CompanyName)
 [14.] Reset Password
-"
+"@
         $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
 
         switch ($chosenOption) {
@@ -429,40 +432,39 @@ function CrossCounterEditUserPassword {
     )
     #Reset Password
     Write-Host "/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\" -ForegroundColor DarkBlue
-    Write-Host " Reset Password..."
+    Write-Host " Reset Password..." -ForegroundColor Blue
     Write-Host "/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\`n" -ForegroundColor DarkBlue
-    Write-Host "
-CrossCounter Passwords don't contain the user's ID and are least 8 characters long with at least 3 of the following: 
-Upper-case letter, lower-case letter, number, symbol."
+    Write-Host @"
+Passwords must not contain the user's ID; be least 8 characters long; and have at least 3 of the following: 
+Upper-case letter, lower-case letter, number, symbol.
+"@ -ForegroundColor Cyan
 #populate list of preset options
     $i = 0
-    Do {
-        $editMade = ""
-        $passOpt = "0","custom","No Change","1","2","3","4","5"
-        $i++
-        $passOpt[$i] = "";
-        Write-Host "`n$($i). - Custom input -"
-        $i++
-        $passOpt[$i] = "";
-        Write-Host "`n$($i). - No Change -"
-        $i++
-        $passOpt[$i] = "$(GeneratePassword -PWStrength 1)"
-        Write-Host "`n$($i). $($passOpt[$i])"                 
-        $i++
-        $passOpt[$i] = "$(GeneratePassword -PWStrength 2)"
-        Write-Host "`n$($i). $($passOpt[$i])"
-        $i++
-        $passOpt[$i] = "$(GeneratePassword -PWStrength 3)"
-        Write-Host "`n$($i). $($passOpt[$i])"
-        $i++
-        $passOpt[$i] = "$(GeneratePassword -PWStrength 4)"
-        Write-Host "`n$($i). $($passOpt[$i])"
-        $i++
-        $passOpt[$i] = "$(GeneratePassword -PWStrength 5)"
-        Write-Host "`n$($i). $($passOpt[$i])"
-        #prot user to select option
+    $editMade = ""
+    $passOpt = "0","custom","No Change","1","2","3","4","5"
+    $i++
+    $passOpt[$i] = "";
+    Write-Host "`n$($i). - Custom input -"
+    $i++
+    $passOpt[$i] = "";
+    Write-Host "`n$($i). - No Change -"
+    $i++
+    $passOpt[$i] = "$(GeneratePassword -PWStrength 1)"
+    Write-Host "`n$($i). $($passOpt[$i])"                 
+    $i++
+    $passOpt[$i] = "$(GeneratePassword -PWStrength 2)"
+    Write-Host "`n$($i). $($passOpt[$i])"
+    $i++
+    $passOpt[$i] = "$(GeneratePassword -PWStrength 3)"
+    Write-Host "`n$($i). $($passOpt[$i])"
+    $i++
+    $passOpt[$i] = "$(GeneratePassword -PWStrength 4)"
+    Write-Host "`n$($i). $($passOpt[$i])"
+    $i++
+    $passOpt[$i] = "$(GeneratePassword -PWStrength 5)"
+    Write-Host "`n$($i). $($passOpt[$i])"
+        #prompt user to select option
         $editMade = Read-Host -Prompt "`nPick an option above to reset the user's password`n"
-    }Until($editMade -ne "")
     switch ($editMade) {
         0 { 
             $newPass =  ""
@@ -507,12 +509,7 @@ Upper-case letter, lower-case letter, number, symbol."
                 Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $newPass
             }
             Write-Host "Password Reset... SUCCESS" -ForegroundColor DarkGreen
-            Write-Host "
-    PASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORD
-    PASS                                                                                        WORD" -ForegroundColor Blue
-Write-Host "   ----------------------------------->        $($newPass)        <-----------------------------------"
-Write-Host "    PASS                                                                                        WORD
-    PASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORDPASSWORD" -ForegroundColor Blue
+            Write-Host "   ------>        $($newPass)        <------" -ForegroundColor Blue
         }catch{
             Write-Host $_ -ForegroundColor Red
             Write-Host "Password Reset... FAILED" -ForegroundColor DarkRed
@@ -525,14 +522,14 @@ function CrossCounterEditAll {
         Write-Host " - WARNING - " -ForegroundColor Red
         Write-Host "EDITING ** ALL ** USERS IN TENANT" -ForegroundColor Yellow
         Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" -ForegroundColor DarkRed
-        Write-Host "`n
+        Write-Host @"
 [1.] Company Name            $($User.CompanyName)
 [2.] Department               $($User.Department)
 [3.] Street address           $($User.StreetAddress)
 [4.] City                     $($User.City)
 [5.] Postal Code              $($User.PostalCode)
 [6.] Country                 $($User.Country)
-"
+"@
         $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
         switch ($chosenOption) {
             1 {
@@ -640,10 +637,8 @@ function CrossCounterEditAll {
 #================================================================================================================================================================================================================================================
 #
 Write-Host "Connecting... Sign into the popup window with your admin account."  -ForegroundColor Green
-Write-Host "..."
 # Login to Microsoft Admin with AAD Read/Write Permissions
 Connect-MgGraph -Scopes "User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All","Calendars.ReadWrite.Shared"
-Write-Host "`n`n" -ForegroundColor Green
 #
 #================================================================================================================================================================================================================================================
 #================================================================================================================================================================================================================================================
@@ -658,7 +653,7 @@ $userList = CrossCounterListUsers
 Do {
     $User = ""
     $userID = ""
-    $userInput1 = Read-Host -Prompt "
+    $userInput1 = Read-Host -Prompt @"
 |----------------------------------------------------------------|
 |                           MAIN MENU                            |
 |   Enter the number listed next to the user you wish to edit    |
@@ -666,7 +661,8 @@ Do {
 |   groups - list groups in tenant                               |
 |   users  - re-list users                                       |
 |   q      - sign out & exit                                     |
-|----------------------------------------------------------------|`n"
+|----------------------------------------------------------------|`n
+"@ -ForegroundColor Yellow
     switch ($userInput1) {
 
 #If you type 'all' as the user ID, then we want to edit *all* of the users in the tenancy at once.
@@ -678,12 +674,13 @@ Do {
         'groups' {
             Do {
                 $groupList = CrossCounterListGroups
-                $chosenGroup = Read-Host -Prompt "
+                $chosenGroup = Read-Host -Prompt @"
 |================================================================|
 |                          GROUPS MENU                           |
 |      Enter the number listed next to the group to edit it      |
 | q         - go back                                            |
-|================================================================|`n"
+|================================================================|`n
+"@ -ForegroundColor Yellow
                 #Try {
                     if(($chosenGroup -ne 'q') -and ($chosenGroup -ne '')){
                         $groupSelected = $groupList[$chosenGroup-1]
@@ -692,14 +689,15 @@ Do {
                             Do{
                                 $groupSelected = Get-MgGroup -GroupId $groupID
                                 $memberList = CrossCounterListMembers -GroupId $groupID
-                                $chosenOption = Read-Host -Prompt "
+                                $chosenOption = Read-Host -Prompt @"
 |=============================================================================================|
 |                                   MEMBERS MENU                                              |
 | Enter the number listed next to the '$($groupSelected.DisplayName)' member to edit that user
 | add       - Add a user to this group                                                        |
 | remove    - Remove a user from this group                                                   |
 | q         - go back                                                                         |
-|=============================================================================================|`n"
+|=============================================================================================|`n
+"@ -ForegroundColor Yellow
                                 switch($chosenOption){
 
                                     'q' {

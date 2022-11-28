@@ -1,4 +1,4 @@
-<#Barclay McClay - 0.1 - 2022 #>
+<#Barclay McClay - 0.2 - 2022 #>
 Write-Host @"
 █████████████████████████████████████████
 ██▀▄─██─▄▄▄─█▄─▄▄▀██▀▄─██─▄▄▄▄█▄─▄██▀▄─██
@@ -10,6 +10,9 @@ Write-Host "=========================================`n" -ForegroundColor DarkGr
 $profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like '*Profile *'
 Write-Host "$($profileList.count +1) Edge Profiles detected" -ForegroundColor Green
 
+$CCScript = $MyInvocation.MyCommand.Path | Split-Path -Parent | Split-Path -Parent # 2> $null	#path this script is being launched from
+$CCScript = $CCScript+"\CrossCounter\CrossCounter.ps1"
+
 ###########################################################################################################################################################################################
 
 function AcrasiaSetup {
@@ -18,7 +21,7 @@ function AcrasiaSetup {
     $outputData = ""
     Do {
         if($i -gt 0) {$outputData += "`n"}
-        Start-Process -FilePath "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"-ArgumentList "--profile-directory=`"$($profileList[$i].name)`""
+        Start-Process -FilePath "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"-ArgumentList "--profile-directory=`"$($profileList[$i].name)`"  https://office.com"
         $add = Read-Host -Prompt "Name for $($profileList[$i].name)?"
         $outputData += "$($profileList[$i].name)=$($add)"
         $i++
@@ -51,8 +54,9 @@ function AcrasiaShortcuts {
     Write-Host "[3.] Exchange Admin Center" -ForegroundColor Green         #https://admin.exchange.microsoft.com/#/mailboxes
     Write-Host "[4.] MEM / Intune" -ForegroundColor Green   #https://endpoint.microsoft.com/#home
     Write-Host "[5.] MS Portals" -ForegroundColor Green     #https://msportals.io/?search='
-    Write-Host "[6.] Office.com" -ForegroundColor Green
+    Write-Host "[6.] Office.com" -ForegroundColor Green     #https://office.com
     Write-Host "[B.] Bookmarks" -ForegroundColor DarkGreen
+    Write-Host "[C.] CrossCounter" -ForegroundColor DarkGreen
     Write-Host "[Q.] Go Back`n" -ForegroundColor Gray
     $link = $false
     $sc = Read-Host
@@ -64,7 +68,7 @@ function AcrasiaShortcuts {
         4   {$link = "https://endpoint.microsoft.com/#home" }
         5   {$link = "https://msportals.io/?search=" }
         6   {$link = "https://office.com" }
-        "b" {
+        "b" { #Bookmarks
             $bk = AcrasiaGetBookmarks -ProfileKey $selectedProfile
             $i=0
             Do{
@@ -84,6 +88,21 @@ function AcrasiaShortcuts {
                     }
                 }
             }
+        }
+        "c"{ #Cross Counter
+            Try{
+                if(Test-Path -Path $CCScript -PathType Leaf){
+                    Start-Process -FilePath "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"-ArgumentList "--profile-directory=`"$($selectedProfile)`" https://msportals.io/?search=)"
+                    Write-Host "Launching CrossCounter..." -ForegroundColor Green
+                    .$CCScript
+                }else{
+                    Write-Host "CrossCounter is not present at the expected directory:`n$($CCScript)`n" -ForegroundColor DarkGray
+                }
+            }Catch{
+                Write-Host "CrossCounter Failed..." -ForegroundColor Red
+                $CCScript
+            }
+
         }
         Default {
             Write-Host "- Invalid Input - " -ForegroundColor Red
@@ -141,15 +160,10 @@ Do{
     Write-Host '                        ACRASIA - MAIN MENU                      '-ForegroundColor Black -BackgroundColor Green
     Write-Host '|   Enter the number listed next to a profile above, or:         |' -ForegroundColor Green -BackgroundColor Black
     Write-Host '|   setup  - run through Acrasia setup again                     |' -ForegroundColor Green -BackgroundColor Black
-    Write-Host '|   list   - list the profiles setup in Acrasia                  |' -ForegroundColor Green -BackgroundColor Black
     Write-Host '|   q      - quit                                                |' -ForegroundColor Green -BackgroundColor Black
     Write-Host "|________________________________________________________________|`n" -ForegroundColor Green -BackgroundColor Black
     $opt1 = Read-Host
     switch ($opt1) {
-        'list'  {
-            AcrasiaListProfiles -ACRASIA_LIST $AcrasiaProfiles
-            Break
-        }
         'setup' {
             $profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like '*Profile *'
             #Write-Host "$($profileList.count + 1) Edge Profiles detected`"
