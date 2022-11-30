@@ -10,22 +10,25 @@ Write-Host "=========================================`n" -ForegroundColor DarkGr
 $profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like '*Profile *'
 Write-Host "$($profileList.count +1) Edge Profiles detected" -ForegroundColor Green
 
-$CCScript = $MyInvocation.MyCommand.Path | Split-Path -Parent | Split-Path -Parent # 2> $null	#path this script is being launched from
+$CCScript = $MyInvocation.MyCommand.Path | Split-Path -Parent | Split-Path -Parent  #path this script is being launched from
 $CCScript = $CCScript+"\CrossCounter\CrossCounter.ps1"
 
 ###########################################################################################################################################################################################
 
 function AcrasiaSetup {
+    $profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like '*Profile *' 
     Write-Host "An Edge Browser window will pop up. Note which profile it is for, and input your name for it into Acrasia..."
-    $i = 0
-    $outputData = ""
-    Do {
-        if($i -gt 0) {$outputData += "`n"}
-        Start-Process -FilePath "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"-ArgumentList "--profile-directory=`"$($profileList[$i].name)`"  https://office.com"
-        $add = Read-Host -Prompt "Name for $($profileList[$i].name)?"
-        $outputData += "$($profileList[$i].name)=$($add)"
-        $i++
-    }Until($i -ge $profileList.count)
+    if($profileList.count -gt 0){
+        $i = 0
+        $outputData = ""
+        Do {
+            if($i -gt 0) {$outputData += "`n"}
+            Start-Process -FilePath "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"-ArgumentList "--profile-directory=`"$($profileList[$i].name)`"  https://office.com"
+            $add = Read-Host -Prompt "Name for $($profileList[$i].name)?"
+            $outputData += "$($profileList[$i].name)=$($add)"
+            $i++
+        }Until($i -ge $profileList.count)
+    }
     Start-Process -FilePath "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"-ArgumentList "--profile-directory=`"Default`""
     $add = Read-Host -Prompt "Name for default profile?"
     $outputData += "`nDefault=$($add)"
@@ -41,7 +44,7 @@ function AcrasiaListProfiles {
     )
     $i = 0
     Do{
-        Write-Host "$($i+1). $($($ACRASIA_LIST.Values)[$i])" -ForegroundColor Green
+        Write-Host "$($i+1). $($ACRASIA_LIST[$i].value)" -ForegroundColor Green
         $i++
     }Until($i -ge $ACRASIA_LIST.count)
 }
@@ -122,26 +125,15 @@ function AcrasiaGetBookmarks {
     return $bkmrk.roots.bookmark_bar.children.url
 }
 
-function AcrasiaEdit {
-    
-}
 
 ##############################################################################################################################################################################################
 
-if(-not(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt" -PathType Leaf)){
-    Write-Host "It looks like you do not have any Acrasia Data..." -ForegroundColor Red
-    Write-Host "It will take ~$((($profileList.count + 1)*10)/60) minutes to run through a setup process wherein you will manually run through your Edge profiles with Acrasia."
-    $setupOpt = Read-Host -Prompt "Run Setup? [y/n]"
-    if($setupOpt.ToLower()-eq 'y'){
-        Write-Host "Edge stores profile information under generic directories called 'Profile 1', 'Profile 2'... and so on.`nAcrasia helps you create a labelled list of these Profile folders for easy access."
-        $AcrasiaProfiles = AcrasiaSetup
-    }else{
-        exit
-    }
-}else{
+# IMPORTING ACRASIA PROFILES & FIRST TIME STARTUP
+if(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt" -PathType Leaf){
     Write-Host "Previous Acrasia data vaildated...`n=========================================" -ForegroundColor Green
     $importData = Get-Content -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt" | Out-String
     $AcrasiaProfiles = ConvertFrom-StringData -StringData $importData
+    $AcrasiaProfiles=$AcrasiaProfiles.GetEnumerator() | Sort-Object -Property Name
     if($AcrasiaProfiles.count -ne ($profileList.count+1)){
         Write-Host "Acrasia has detected changes in your Edge profiles since last setup." -ForegroundColor Yellow
         Write-Host "There are $($profileList.count+1) Edge Profiles, but Acrasia has $($AcrasiaProfiles.count) in its records." -ForegroundColor Yellow
@@ -152,6 +144,16 @@ if(-not(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaD
         }else{
             exit
         } 
+    }
+}else{
+    Write-Host "It looks like you do not have any Acrasia Data..." -ForegroundColor Red
+    Write-Host "It will take ~$((($profileList.count + 1)*10)/60) minutes to run through a setup process wherein you will manually run through your Edge profiles with Acrasia."
+    $setupOpt = Read-Host -Prompt "Run Setup? [y/n]"
+    if($setupOpt.ToLower()-eq 'y'){
+        Write-Host "Edge stores profile information under generic directories called 'Profile 1', 'Profile 2'... and so on.`nAcrasia helps you create a labelled list of these Profile folders for easy access."
+        $AcrasiaProfiles = AcrasiaSetup
+    }else{
+        exit
     }
 }
     
@@ -165,8 +167,6 @@ Do{
     $opt1 = Read-Host
     switch ($opt1) {
         'setup' {
-            $profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like '*Profile *'
-            #Write-Host "$($profileList.count + 1) Edge Profiles detected`"
             $AcrasiaProfiles = AcrasiaSetup
             break
         }
@@ -176,8 +176,8 @@ Do{
         Default {
             if(($AcrasiaProfiles.count -ge $opt1)-and($opt1 -gt 0)){
                 Try {
-                    $selectedProfile = $($AcrasiaProfiles.keys)[$opt1-1]
-                    $selectedName = $($AcrasiaProfiles.values)[$opt1-1]
+                    $selectedProfile = $AcrasiaProfiles[$opt1-1].name
+                    $selectedName = $AcrasiaProfiles[$opt1-1].value
                     AcrasiaShortcuts
                 }Catch{
                     Write-Host 'ERRCATCH - Invalid Input' -ForegroundColor Red
