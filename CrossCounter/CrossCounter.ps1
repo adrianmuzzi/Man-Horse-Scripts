@@ -653,7 +653,7 @@ $userList = CrossCounterListUsers
 Do {
     $User = ""
     $userID = ""
-    $userInput1 = Read-Host -Prompt @"
+    Write-Host @"
 |----------------------------------------------------------------|
 |                           MAIN MENU                            |
 |   Enter the number listed next to the user you wish to edit    |
@@ -661,8 +661,9 @@ Do {
 |   groups - list groups in tenant                               |
 |   users  - re-list users                                       |
 |   q      - sign out & exit                                     |
-|----------------------------------------------------------------|`n
+|----------------------------------------------------------------|
 "@ -ForegroundColor Yellow
+    $userInput1 = Read-Host
     switch ($userInput1) {
 
 #If you type 'all' as the user ID, then we want to edit *all* of the users in the tenancy at once.
@@ -674,13 +675,14 @@ Do {
         'groups' {
             Do {
                 $groupList = CrossCounterListGroups
-                $chosenGroup = Read-Host -Prompt @"
+                Write-Host @"
 |================================================================|
 |                          GROUPS MENU                           |
 |      Enter the number listed next to the group to edit it      |
 | q         - go back                                            |
-|================================================================|`n
+|================================================================|
 "@ -ForegroundColor Yellow
+                $chosenGroup = Read-Host
                 #Try {
                     if(($chosenGroup -ne 'q') -and ($chosenGroup -ne '')){
                         $groupSelected = $groupList[$chosenGroup-1]
@@ -689,15 +691,16 @@ Do {
                             Do{
                                 $groupSelected = Get-MgGroup -GroupId $groupID
                                 $memberList = CrossCounterListMembers -GroupId $groupID
-                                $chosenOption = Read-Host -Prompt @"
+                                Write-Host @"
 |=============================================================================================|
 |                                   MEMBERS MENU                                              |
 | Enter the number listed next to the '$($groupSelected.DisplayName)' member to edit that user
 | add       - Add a user to this group                                                        |
 | remove    - Remove a user from this group                                                   |
 | q         - go back                                                                         |
-|=============================================================================================|`n
+|=============================================================================================|
 "@ -ForegroundColor Yellow
+                                $chosenOption = Read-Host
                                 switch($chosenOption){
 
                                     'q' {
