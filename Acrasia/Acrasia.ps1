@@ -7,6 +7,10 @@ Write-Host @"
 "@ -ForegroundColor Green
 Write-Host "=========================================`n" -ForegroundColor DarkGreen
 
+###
+Write-Host -ForegroundColor DarkRed
+###
+
 $profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like '*Profile *'
 Write-Host "$($profileList.count +1) Edge Profiles detected" -ForegroundColor Green
 
