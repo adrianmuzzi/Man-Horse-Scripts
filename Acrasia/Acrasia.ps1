@@ -8,7 +8,7 @@ Write-Host @"
 Write-Host "=========================================`n" -ForegroundColor DarkGreen
 
 ###
-Write-Host -ForegroundColor DarkRed
+Write-Host "Hi Chris" -ForegroundColor DarkRed
 ###
 
 $profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like '*Profile *'
