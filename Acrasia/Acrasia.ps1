@@ -39,14 +39,11 @@ function AcrasiaSetup {
 }
 
 function AcrasiaListProfiles {
-    param (
-        $ACRASIA_LIST
-    )
     $i = 0
     Do{
-        Write-Host "$($i+1). $($ACRASIA_LIST[$i].value)" -ForegroundColor Green
+        Write-Host "$($i+1). $($AcrasiaProfiles[$i].value)" -ForegroundColor Green
         $i++
-    }Until($i -ge $ACRASIA_LIST.count)
+    }Until($i -ge $AcrasiaProfiles.count)
 }
 
 function AcrasiaShortcuts {
@@ -125,6 +122,20 @@ function AcrasiaGetBookmarks {
     return $bkmrk.roots.bookmark_bar.children.url
 }
 
+function AcrasiaSearch ($search){
+    $result = $AcrasiaProfiles.value | ForEach-Object { if($_.contains($search)){$_} }
+    if ($foundKeys)
+    {
+        Write-host "Acrasia Found $($result.count):" -ForegroundColor Green
+        Write-host $foundKeys | Format-Table
+    }
+    else
+    {
+        Write-host $search
+        Write-host $foundKeys
+        return "No profile was found with that name..."
+    }
+}
 
 ##############################################################################################################################################################################################
 
@@ -158,7 +169,7 @@ if(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.t
 }
     
 Do{
-    AcrasiaListProfiles -ACRASIA_LIST $AcrasiaProfiles
+    AcrasiaListProfiles
     Write-Host '                        ACRASIA - MAIN MENU                      '-ForegroundColor Black -BackgroundColor Green
     Write-Host '|   Enter the number listed next to a profile above, or:         |' -ForegroundColor Green -BackgroundColor Black
     Write-Host '|   setup  - run through Acrasia setup again                     |' -ForegroundColor Green -BackgroundColor Black
@@ -174,16 +185,19 @@ Do{
             break
         }
         Default {
+            Try {
             if(($AcrasiaProfiles.count -ge $opt1)-and($opt1 -gt 0)){
-                Try {
                     $selectedProfile = $AcrasiaProfiles[$opt1-1].name
                     $selectedName = $AcrasiaProfiles[$opt1-1].value
                     AcrasiaShortcuts
-                }Catch{
-                    Write-Host 'ERRCATCH - Invalid Input' -ForegroundColor Red
-                } 
-                Break
+            }else{
+                Write-Host "Enter a number between 1 and $($AcrasiaProfiles.count)" -ForegroundColor Red
             }
+            }Catch{
+                AcrasiaSearch -search $opt1
+                Write-Host 'ERRCATCH - Invalid Input' -ForegroundColor Red
+            } 
+            Break
         }
     }
 }Until($opt1 -eq 'q')
