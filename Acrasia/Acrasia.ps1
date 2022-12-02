@@ -7,10 +7,6 @@ Write-Host @"
 "@ -ForegroundColor Green
 Write-Host "=========================================`n" -ForegroundColor DarkGreen
 
-###
-Write-Host "Hi Chris" -ForegroundColor DarkRed
-###
-
 $profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like '*Profile *'
 Write-Host "$($profileList.count +1) Edge Profiles detected" -ForegroundColor Green
 
@@ -127,16 +123,17 @@ function AcrasiaGetBookmarks {
 }
 
 function AcrasiaSearch ($search){
-    $result = $AcrasiaProfiles.value | ForEach-Object { if($_.contains($search)){$_} }
-    if ($foundKeys)
-    {
-        Write-host "Acrasia Found $($result.count):" -ForegroundColor Green
-        Write-host $foundKeys | Format-Table
-    }
-    else
-    {
-        Write-host $search
-        Write-host $foundKeys
+    $result = $AcrasiaProfiles.value.ToLower() | ForEach-Object { if($_.contains($search.ToLower())){$_} }
+    if ($AcrasiaProfiles.value.ToLower().contains($result.ToLower())){
+        if($result.count -gt 1){
+            Write-host "Acrasia Found $($result.count) matches, please refine your search..." -ForegroundColor Red
+            for($i = 0; $i -eq $result.count; $i++){
+                Write-Host "$($i). $($result[$i+1])"
+            }
+        }else{
+            return $AcrasiaProfiles | Where-Object { $_.Value.ToLower() -contains $result.ToLower()}
+        }
+    }else{
         return "No profile was found with that name..."
     }
 }
@@ -158,7 +155,7 @@ if(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.t
             $AcrasiaProfiles = AcrasiaSetup
         }else{
             exit
-        } 
+        }
     }
 }else{
     Write-Host "It looks like you do not have any Acrasia Data..." -ForegroundColor Red
@@ -198,9 +195,15 @@ Do{
                 Write-Host "Enter a number between 1 and $($AcrasiaProfiles.count)" -ForegroundColor Red
             }
             }Catch{
-                AcrasiaSearch -search $opt1
-                Write-Host 'ERRCATCH - Invalid Input' -ForegroundColor Red
-            } 
+                $searchedProfile = AcrasiaSearch -search $opt1
+                if($searchedProfile){
+                    $selectedName = $searchedProfile.Value
+                    $selectedProfile = $searchedProfile.Name
+                    AcrasiaShortcuts
+                }else{
+                    Write-Host 'ERRCATCH - Invalid Input' -ForegroundColor Red
+                }
+            }
             Break
         }
     }
