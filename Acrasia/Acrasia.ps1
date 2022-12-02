@@ -38,6 +38,42 @@ function AcrasiaSetup {
     return $outFile
 }
 
+function AcrasiaRename ($renameProfile,$NewName) {
+    $i = 0
+    $str = ""
+    Try{
+        Do{
+            if($AcrasiaProfiles[$i].Name -eq $renameProfile){
+                $str += $AcrasiaProfiles[$i].Name
+                $str += "="
+                $str += $NewName
+                $str += "`n"
+            }else{
+                $str += $AcrasiaProfiles[$i].Name
+                $str += "="
+                $str += $AcrasiaProfiles[$i].Value
+                $str += "`n"
+            }
+            $i++
+        }Until($i -ge $AcrasiaProfiles.count)
+    }Catch{
+        Write-Host -Prompt "An error has occurred while renaming $($renameProfile)... No data has been written." -ForegroundColor Red
+        Read-Host -Prompt "Press enter to edit Acrasia data manually"
+        & "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt"
+        return
+    }
+    Try{
+        $str | Out-File -FilePath "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt"
+        $outFile = ConvertFrom-StringData -StringData $str
+        $outFile = $outFile.GetEnumerator() | Sort-Object -Property Value
+    }Catch{
+        Write-Host -Prompt "An error has occurred while writing the new Acrasia data to file" -ForegroundColor Red
+        Read-Host -Prompt "Press enter to edit Acrasia data manually"
+        & "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt"
+        return
+    }
+}
+
 function AcrasiaListProfiles {
     $i = 0
     Do{
@@ -45,10 +81,17 @@ function AcrasiaListProfiles {
         $i++
     }Until($i -ge $AcrasiaProfiles.count)
 }
+function AcrasiaRefreshProfiles {
+    $AcrasiaProfiles = Get-Content -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt" | Out-String  #Read the data
+    $AcrasiaProfiles = ConvertFrom-StringData -StringData $AcrasiaProfiles 
+    $AcrasiaProfiles = $AcrasiaProfiles.GetEnumerator() | Sort-Object -Property Value
+    return $AcrasiaProfiles
+}
 
 function AcrasiaShortcuts {
     Do{
-    Write-Host "    $($selectedName)            " -ForegroundColor Black -BackgroundColor Blue
+    Write-Host
+    Write-Host "    $($selectedName)            " -ForegroundColor Black
     Write-Host "[1.] Azure Portal" -ForegroundColor Green      #https://portal.azure.com/
     Write-Host "[2.] M365 Admin Portal" -ForegroundColor Green    #https://portal.microsoft.com/Adminportal/Home#/users
     Write-Host "[3.] Exchange Admin Center" -ForegroundColor Green         #https://admin.exchange.microsoft.com/#/mailboxes
@@ -57,6 +100,7 @@ function AcrasiaShortcuts {
     Write-Host "[6.] Office.com" -ForegroundColor Green     #https://office.com
     Write-Host "[B.] Profile Bookmarks" -ForegroundColor DarkGreen
     Write-Host "[C.] CrossCounter" -ForegroundColor DarkGreen
+    Write-Host "[R.] Rename Profile" -ForegroundColor DarkGreen
     Write-Host "[Q.] Go Back`n" -ForegroundColor Gray
     $link = $false
     $sc = Read-Host
@@ -102,7 +146,12 @@ function AcrasiaShortcuts {
                 Write-Host "CrossCounter Failed..." -ForegroundColor Red
                 $CCScript
             }
-
+        }
+        "r"{ #rename
+            $NewName = Read-Host -Prompt "Rename $($selectedName) to"
+            AcrasiaRename -renameProfile $selectedProfile -NewName $NewName
+            $sc = "q"
+            break
         }
         Default {
             Write-Host "- Invalid Input - " -ForegroundColor Red
@@ -140,23 +189,23 @@ function AcrasiaSearch ($search){
             }
         }   
     } Catch {
-        return "No profile was found with that name"
+        return "No profile was found with that name..."
     }
 }
 
 ##############################################################################################################################################################################################
 
 # IMPORTING ACRASIA PROFILES & FIRST TIME STARTUP
-if(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt" -PathType Leaf){
-    Write-Host "Previous Acrasia data vaildated...`n=========================================" -ForegroundColor Green
-    $importData = Get-Content -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt" | Out-String
-    $AcrasiaProfiles = ConvertFrom-StringData -StringData $importData
-    $AcrasiaProfiles=$AcrasiaProfiles.GetEnumerator() | Sort-Object -Property Name
+if(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt" -PathType Leaf){ #Do we have _AcrasiaData.txt file?
+    Write-Host "Previous Acrasia data vaildated...`n=========================================" -ForegroundColor Green #We have found a file...
+    $AcrasiaProfiles = Get-Content -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt" | Out-String  #Read the data
+    $AcrasiaProfiles = ConvertFrom-StringData -StringData $AcrasiaProfiles 
+    $AcrasiaProfiles = $AcrasiaProfiles.GetEnumerator() | Sort-Object -Property Value
     if($AcrasiaProfiles.count -ne ($profileList.count+1)){
         Write-Host "Acrasia has detected changes in your Edge profiles since last setup." -ForegroundColor Yellow
         Write-Host "There are $($profileList.count+1) Edge Profiles, but Acrasia has $($AcrasiaProfiles.count) in its records." -ForegroundColor Yellow
         $setupOpt = Read-Host -Prompt "Run setup? [y/n]"
-        if($setupOpt.ToLower()-eq 'y'){
+        if($setupOpt.ToLower()-eq "y"){
             Write-Host "Edge stores profile information under generic directories called 'Profile 1', 'Profile 2'... and so on.`nAcrasia helps you create a labelled list of these Profile folders for easy access."
             $AcrasiaProfiles = AcrasiaSetup
         }else{
@@ -167,7 +216,7 @@ if(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.t
     Write-Host "It looks like you do not have any Acrasia Data..." -ForegroundColor Red
     Write-Host "It will take ~$((($profileList.count + 1)*10)/60) minutes to run through a setup process wherein you will manually run through your Edge profiles with Acrasia."
     $setupOpt = Read-Host -Prompt "Run Setup? [y/n]"
-    if($setupOpt.ToLower()-eq 'y'){
+    if($setupOpt.ToLower()-eq "y"){
         Write-Host "Edge stores profile information under generic directories called 'Profile 1', 'Profile 2'... and so on.`nAcrasia helps you create a labelled list of these Profile folders for easy access."
         $AcrasiaProfiles = AcrasiaSetup
     }else{
@@ -177,18 +226,19 @@ if(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.t
     
 Do{
     AcrasiaListProfiles
-    Write-Host '                        ACRASIA - MAIN MENU                      '-ForegroundColor Black -BackgroundColor Green
-    Write-Host '|   Enter the number listed next to a profile above, or:         |' -ForegroundColor Green -BackgroundColor Black
-    Write-Host '|   setup  - run through Acrasia setup again                     |' -ForegroundColor Green -BackgroundColor Black
-    Write-Host '|   q      - quit                                                |' -ForegroundColor Green -BackgroundColor Black
+    Write-Host "                        ACRASIA - MAIN MENU                       "-ForegroundColor Black -BackgroundColor Green
+    Write-Host "|         Enter the number listed next to a profile above,       |" -ForegroundColor Green -BackgroundColor Black
+    Write-Host "|                 or enter the name of the profile               |" -ForegroundColor Green -BackgroundColor Black
+    Write-Host "|   setup  - run through Acrasia setup again                     |" -ForegroundColor Green -BackgroundColor Black
+    Write-Host "|   q      - quit                                                |" -ForegroundColor Green -BackgroundColor Black
     Write-Host "|________________________________________________________________|`n" -ForegroundColor Green -BackgroundColor Black
     $opt1 = Read-Host
     switch ($opt1) {
-        'setup' {
+        "setup" {
             $AcrasiaProfiles = AcrasiaSetup
             break
         }
-        'q'     {
+        "q"     {
             break
         }
         Default {
@@ -197,6 +247,7 @@ Do{
                 $selectedProfile = $AcrasiaProfiles[$opt1-1].name
                 $selectedName = $AcrasiaProfiles[$opt1-1].value
                 AcrasiaShortcuts
+                $AcrasiaProfiles=AcrasiaRefreshProfiles
             }else{
                 Write-Host "Enter a number between 1 and $($AcrasiaProfiles.count)" -ForegroundColor Red
             }
@@ -206,6 +257,7 @@ Do{
                     $selectedName = $searchedProfile.Value
                     $selectedProfile = $searchedProfile.Name
                     AcrasiaShortcuts
+                    $AcrasiaProfiles=AcrasiaRefreshProfiles
                 }else{
                     Write-Host $searchedProfile -ForegroundColor Red
                 }
@@ -216,6 +268,7 @@ Do{
 }Until(($opt1.tolower() -eq 'q') -or $opt1.tolower() -eq "devmode")
 #we out of the main loop!
 if($opt1.tolower() -eq "devmode"){
+    & "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt"
     #nothing yet.. but we escaped the loop witout calling exit
 }else{
     exit
