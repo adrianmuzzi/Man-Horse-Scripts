@@ -3,7 +3,7 @@ Write-Host @"
 █████████████████████████████████████████
 ██▀▄─██─▄▄▄─█▄─▄▄▀██▀▄─██─▄▄▄▄█▄─▄██▀▄─██
 ██─▀─██─███▀██─▄─▄██─▀─██▄▄▄▄─██─███─▀─██
-▀▄▄▀▄▄▀▄▄▄▄▄▀▄▄▀▄▄▀▄▄▀▄▄▀▄▄▄▄▄▀▄▄▄▀▄▄▀▄▄▀
+█▄▄█▄▄█▄▄▄▄▄█▄▄█▄▄█▄▄█▄▄█▄▄▄▄▄█▄▄▄█▄▄█▄▄█
 "@ -ForegroundColor Green
 Write-Host "=========================================`n" -ForegroundColor DarkGreen
 
@@ -49,20 +49,20 @@ function AcrasiaListProfiles {
 function AcrasiaShortcuts {
     Do{
     Write-Host "    $($selectedName)            " -ForegroundColor Black -BackgroundColor Blue
-    Write-Host "[1.] AAD" -ForegroundColor Green      #https://portal.azure.com/#view/Microsoft_AAD_UsersAndTenants/UserManagementMenuBlade/~/AllUsers
+    Write-Host "[1.] Azure Portal" -ForegroundColor Green      #https://portal.azure.com/
     Write-Host "[2.] M365 Admin Portal" -ForegroundColor Green    #https://portal.microsoft.com/Adminportal/Home#/users
     Write-Host "[3.] Exchange Admin Center" -ForegroundColor Green         #https://admin.exchange.microsoft.com/#/mailboxes
     Write-Host "[4.] MEM / Intune" -ForegroundColor Green   #https://endpoint.microsoft.com/#home
     Write-Host "[5.] MS Portals" -ForegroundColor Green     #https://msportals.io/?search='
     Write-Host "[6.] Office.com" -ForegroundColor Green     #https://office.com
-    Write-Host "[B.] Bookmarks" -ForegroundColor DarkGreen
+    Write-Host "[B.] Profile Bookmarks" -ForegroundColor DarkGreen
     Write-Host "[C.] CrossCounter" -ForegroundColor DarkGreen
     Write-Host "[Q.] Go Back`n" -ForegroundColor Gray
     $link = $false
     $sc = Read-Host
     switch ($sc){
         "q" { break }
-        1   {$link = "https://portal.azure.com/#view/Microsoft_AAD_UsersAndTenants/UserManagementMenuBlade/~/AllUsers" }
+        1   {$link = "https://portal.azure.com/" }
         2   {$link = "https://portal.microsoft.com/Adminportal/Home#/users" }
         3   {$link = "https://admin.exchange.microsoft.com/#/mailboxes" }
         4   {$link = "https://endpoint.microsoft.com/#home" }
@@ -92,7 +92,7 @@ function AcrasiaShortcuts {
         "c"{ #Cross Counter
             Try{
                 if(Test-Path -Path $CCScript -PathType Leaf){
-                    Start-Process -FilePath "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"-ArgumentList "--profile-directory=`"$($selectedProfile)`" https://msportals.io/?search=)"
+                    Start-Process -FilePath "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"-ArgumentList "--profile-directory=`"$($selectedProfile)`" about:blank)"
                     Write-Host "Launching CrossCounter..." -ForegroundColor Green
                     .$CCScript
                 }else{
@@ -124,17 +124,23 @@ function AcrasiaGetBookmarks {
 
 function AcrasiaSearch ($search){
     $result = $AcrasiaProfiles.value.ToLower() | ForEach-Object { if($_.contains($search.ToLower())){$_} }
-    if ($AcrasiaProfiles.value.ToLower().contains($result.ToLower())){
+    Try {
         if($result.count -gt 1){
-            Write-host "Acrasia Found $($result.count) matches, please refine your search..." -ForegroundColor Red
-            for($i = 0; $i -eq $result.count; $i++){
-                Write-Host "$($i). $($result[$i+1])"
-            }
+            Write-host "Acrasia Found $($result.count) matches, please refine your search..." -ForegroundColor Yellow
+            $i=0
+            Do {
+                Write-Host "    - $($result[$i])" -ForegroundColor DarkYellow
+                $i++
+            }Until($i -eq $result.count)
         }else{
-            return $AcrasiaProfiles | Where-Object { $_.Value.ToLower() -contains $result.ToLower()}
-        }
-    }else{
-        return "No profile was found with that name..."
+            if($AcrasiaProfiles.value.ToLower().contains($result.ToLower())){
+                return $AcrasiaProfiles | Where-Object { $_.Value.ToLower() -contains $result.ToLower()}
+            }else{
+                return "No profile was found with that name..."
+            }
+        }   
+    } Catch {
+        return "No profile was found with that name"
     }
 }
 
@@ -188,28 +194,32 @@ Do{
         Default {
             Try {
             if(($AcrasiaProfiles.count -ge $opt1)-and($opt1 -gt 0)){
-                    $selectedProfile = $AcrasiaProfiles[$opt1-1].name
-                    $selectedName = $AcrasiaProfiles[$opt1-1].value
-                    AcrasiaShortcuts
+                $selectedProfile = $AcrasiaProfiles[$opt1-1].name
+                $selectedName = $AcrasiaProfiles[$opt1-1].value
+                AcrasiaShortcuts
             }else{
                 Write-Host "Enter a number between 1 and $($AcrasiaProfiles.count)" -ForegroundColor Red
             }
             }Catch{
                 $searchedProfile = AcrasiaSearch -search $opt1
-                if($searchedProfile){
+                if($searchedProfile -in $AcrasiaProfiles){
                     $selectedName = $searchedProfile.Value
                     $selectedProfile = $searchedProfile.Name
                     AcrasiaShortcuts
                 }else{
-                    Write-Host 'ERRCATCH - Invalid Input' -ForegroundColor Red
+                    Write-Host $searchedProfile -ForegroundColor Red
                 }
             }
             Break
         }
     }
-}Until($opt1 -eq 'q')
+}Until(($opt1.tolower() -eq 'q') -or $opt1.tolower() -eq "devmode")
 #we out of the main loop!
-exit
+if($opt1.tolower() -eq "devmode"){
+    #nothing yet.. but we escaped the loop witout calling exit
+}else{
+    exit
+}
 ##########################################
 #                                        #
 #               THE END                  #
