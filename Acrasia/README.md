@@ -1,7 +1,7 @@
 # Acrasia
 __Ver 0.2__
 
-*Acrasia* is for managing M365 tenants spread across multiple Edge profiles.
+*Acrasia* *(Uh-cray-shuh)* is for managing M365 tenants spread across multiple Edge profiles.
 
 Beyond just quick-launching Edge into a specific profile, Acrasia will increasingly be used to access the other scripts in this repository as more are developed.
 

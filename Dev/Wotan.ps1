@@ -1,9 +1,10 @@
 <# Transfers data from Chrome to Edge #>
+Write-Host "......................." -ForegroundColor DarkMagenta
 Write-Host @"
 █ █ █ █▀█ ▀█▀ ▄▀█ █▄ █
 ▀▄▀▄▀ █▄█  █  █▀█ █ ▀█
-"@ -ForegroundColor Green
-Write-Host "=========================================" -ForegroundColor DarkGreen
+"@ -ForegroundColor Magenta
+Write-Host "......................." -ForegroundColor DarkMagenta
 
 Write-Host "Closing all Chrome and Edge windows..." -ForegroundColor Green
 
@@ -25,5 +26,5 @@ Copy-Item "$($EdgePath)\Bookmarks" -Destination "C:\temp\Edge\Bookmarks"
 Copy-Item "$($EdgePath)\Bookmarks.bak" -Destination "C:\temp\Edge\Bookmarks.bak"  2> $null
 Copy-Item "$($EdgePath)\Bookmarks.mbak" -Destination "C:\temp\Edge\Bookmarks.mbak" 2> $null
 
-explorer.exe "C:\temp"
+& "C:\temp"
 explorer.exe $EdgePath

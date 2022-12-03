@@ -226,9 +226,9 @@ if(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.t
     
 Do{
     AcrasiaListProfiles
-    Write-Host "                        ACRASIA - MAIN MENU                       "-ForegroundColor Black -BackgroundColor Green
+    Write-Host "                        ACRASIA - MAIN MENU                       " -ForegroundColor Black -BackgroundColor Green
     Write-Host "|         Enter the number listed next to a profile above,       |" -ForegroundColor Green -BackgroundColor Black
-    Write-Host "|                 or enter the name of the profile               |" -ForegroundColor Green -BackgroundColor Black
+    Write-Host "|        or enter the name (or partial name) of the profile      |" -ForegroundColor Green -BackgroundColor Black
     Write-Host "|   setup  - run through Acrasia setup again                     |" -ForegroundColor Green -BackgroundColor Black
     Write-Host "|   q      - quit                                                |" -ForegroundColor Green -BackgroundColor Black
     Write-Host "|________________________________________________________________|`n" -ForegroundColor Green -BackgroundColor Black
