@@ -257,6 +257,7 @@ Write-Host @"
 [12.] Country                 $($User.Country)
 [13.] Company Name            $($User.CompanyName)
 [14.] Reset Password
+[15.] TAP Account
 "@
         $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
 
@@ -346,6 +347,18 @@ Write-Host @"
                 CrossCounterEditUserPassword -userID $userID
                 Break
             }
+            15 {
+                $TAP = New-MgUserAuthenticationTemporaryAccessPassMethod -UserID $UserID -IsUsableOnce -LifetimeInMinutes 60
+                Write-Host
+                Write-Host "Your TAP is useable once in the next 60 minutes." -ForegroundColor DarkBlue
+                Write-Host "$($TAP.TemporaryAccessPass)"
+                Write-Host "Copied to Clipboard." -ForegroundColor Blue
+                Set-Clipboard -Value "$($User.Mail)"
+                Set-Clipboard -Value "$($TAP.TemporaryAccessPass)"
+                Write-Host
+                Start-Process -FilePath "C:\Program Files\Microsoft\Edge\Application\msedge.exe"-ArgumentList "-inprivate https:\\www.portal.office.com\"
+                Break
+            }
         }
     }Until($chosenOption -eq 'q')
 }
@@ -431,9 +444,9 @@ function CrossCounterEditUserPassword {
         $userID
     )
     #Reset Password
-    Write-Host "/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\" -ForegroundColor DarkBlue
+    Write-Host "-----------------------------" -ForegroundColor DarkBlue
     Write-Host " Reset Password..." -ForegroundColor Blue
-    Write-Host "/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\`n" -ForegroundColor DarkBlue
+    Write-Host "-----------------------------`n" -ForegroundColor DarkBlue
     Write-Host @"
 Passwords must not contain the user's ID; be least 8 characters long; and have at least 3 of the following: 
 Upper-case letter, lower-case letter, number, symbol.
@@ -500,14 +513,9 @@ Upper-case letter, lower-case letter, number, symbol.
         }
     }
     if(($newPass -ne "")){
-        $reqnextsign = Read-Host -Prompt "Require Change on next sign-in? (y/n)"
         try {
             $authMethod = Get-MgUserAuthenticationMethod -UserId $userID
-            if(($reqnextsign -eq 'y') -or ($reqnextsign -eq 'Y')){
-                Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $newPass -RequireChangeOnNextSignIn
-            }else{
-                Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $newPass
-            }
+            Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $newPass
             Write-Host "Password Reset... SUCCESS" -ForegroundColor DarkGreen
             Write-Host "   ------>        $($newPass)        <------" -ForegroundColor Blue
         }catch{
@@ -638,7 +646,7 @@ function CrossCounterEditAll {
 #
 Write-Host "Connecting... Sign into the popup window with your admin account."  -ForegroundColor Green
 # Login to Microsoft Admin with AAD Read/Write Permissions
-Connect-MgGraph -Scopes "User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All","Calendars.ReadWrite.Shared"
+Connect-MgGraph -Scopes "User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","Policy.Read.All","Policy.ReadWrite.AuthenticationMethod","UserAuthenticationMethod.ReadWrite.All","Calendars.ReadWrite.Shared"
 #
 #================================================================================================================================================================================================================================================
 #================================================================================================================================================================================================================================================

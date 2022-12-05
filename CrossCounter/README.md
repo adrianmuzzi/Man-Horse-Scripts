@@ -38,17 +38,20 @@ This menu allows for quick changes to a chosen user in the tenant.
 - [12] Country
 - [13] Company Name
 - [14] Reset Password
+- [15] TAP Account
 
 **shows preview*
 
 These options are fairly self explanatory. There is some extra functionality for:
-- Display Name
+- **Display Name**
   - Editing the Display name will prompt you to change the 'First Name' and 'Last Name' options to match.
-- Email
+- **Email**
   - Changing a user's email presents you with a list of preset options that utilise the 'First Name' and 'Last Name' profile items of the user. It also allows for custom input. ***Note:** This does not change the user's principal name*.
-- Reset Password
-  - This option enables you choose a new password from a list of presets, *or* input a custom password. Cross Counter passwords must be 8 characters or longer. If you input a password which does not meet the relevant password strength policies of your tenant, there is a bug where Cross Counter will report a 'sucessful' password reset, yet nothing will be actually be changed. The generated presets cover most password strength requirements, but are not generated in the most crytographically elegant way.
-## 'Edit All' menu
+- **Reset Password**
+  - This option enables you choose a new password from a list of presets, *or* input a custom password. Users will be prompted to change this password on next sign-in.
+- **TAP Account**
+  - This will create a new one-time-use **T**emporary **A**ccess **P**assword; valid for the user for the next 60 minutes. It also copies both the user's email and the TAP to the clipboard, and opens a new Edge private window to portal.office.com for convenient sign-in to the user's account.
+  ## 'Edit All' menu
 The 'Edit All' commands apply  to all the users in the tenant.
 - [1] Company Name
 - [2] Department

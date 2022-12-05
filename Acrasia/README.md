@@ -41,8 +41,8 @@ When you select a profile, you are taken to a menu like so:
 [2.] M365 Admin Portal
 [3.] Exchange Admin Center
 [4.] MEM / Intune
-[5.] MS Portals
-[6.] Office.com
+[5.] Office 365 Portal
+[6.] MS Portals
 [B.] Bookmarks
 [C.] CrossCounter
 [Q.] Go Back

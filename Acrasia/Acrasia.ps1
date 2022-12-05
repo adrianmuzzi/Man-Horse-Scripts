@@ -91,13 +91,13 @@ function AcrasiaRefreshProfiles {
 function AcrasiaShortcuts {
     Do{
     Write-Host
-    Write-Host "    $($selectedName)            " -ForegroundColor Black
+    Write-Host "    $($selectedName)            " -ForegroundColor Black -BackgroundColor Green
     Write-Host "[1.] Azure Portal" -ForegroundColor Green      #https://portal.azure.com/
     Write-Host "[2.] M365 Admin Portal" -ForegroundColor Green    #https://portal.microsoft.com/Adminportal/Home#/users
     Write-Host "[3.] Exchange Admin Center" -ForegroundColor Green         #https://admin.exchange.microsoft.com/#/mailboxes
     Write-Host "[4.] MEM / Intune" -ForegroundColor Green   #https://endpoint.microsoft.com/#home
-    Write-Host "[5.] MS Portals" -ForegroundColor Green     #https://msportals.io/?search='
-    Write-Host "[6.] Office.com" -ForegroundColor Green     #https://office.com
+    Write-Host "[5.] Office 365 Portal" -ForegroundColor Green     #https://portal.office.com
+    Write-Host "[6.] MS Portals" -ForegroundColor Green     #https://msportals.io/?search='
     Write-Host "[B.] Profile Bookmarks" -ForegroundColor DarkGreen
     Write-Host "[C.] CrossCounter" -ForegroundColor DarkGreen
     Write-Host "[R.] Rename Profile" -ForegroundColor DarkGreen
@@ -110,8 +110,8 @@ function AcrasiaShortcuts {
         2   {$link = "https://portal.microsoft.com/Adminportal/Home#/users" }
         3   {$link = "https://admin.exchange.microsoft.com/#/mailboxes" }
         4   {$link = "https://endpoint.microsoft.com/#home" }
-        5   {$link = "https://msportals.io/?search=" }
-        6   {$link = "https://office.com" }
+        5   {$link = "https://portal.office.com" }
+        6   {$link = "https://msportals.io/?search=" }
         "b" { #Bookmarks
             $bk = AcrasiaGetBookmarks -ProfileKey $selectedProfile
             $i=0
