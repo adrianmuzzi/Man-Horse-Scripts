@@ -123,7 +123,7 @@ function AcrasiaShortcuts {
             $bc = Read-Host
             switch ($bc) {
                 Default {
-                    if($bc.ToLower() -ne "q"){
+                    if($bc -ne "q"){
                         Try{
                             $link = "$($bk[$bc-1])"
                         }Catch{
@@ -265,9 +265,9 @@ Do{
             Break
         }
     }
-}Until(($opt1.tolower() -eq 'q') -or $opt1.tolower() -eq "devmode")
+}Until(($opt1-eq 'q') -or $opt1 -eq "devmode")
 #we out of the main loop!
-if($opt1.tolower() -eq "devmode"){
+if($opt1 -eq "devmode"){
     & "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt"
     #nothing yet.. but we escaped the loop witout calling exit
 }else{

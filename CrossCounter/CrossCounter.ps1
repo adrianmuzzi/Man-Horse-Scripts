@@ -25,40 +25,17 @@ function Get-MnemonicWord {
         throw "Could not retrieve Mnemonic Word List: $($Exception.Message)"
     } 
 }
-function GeneratePassword {
-    param (
-        $PWStrength
-    )
-    $n = Get-Random -Maximum 10000
-    $nn = Get-Random -Maximum 100
-    $word = Get-MnemonicWord
-    $word2 = Get-MnemonicWord
-    $letterList = "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","!","?","@","#", "&","=","%"
-    switch ($PWStrength) {
-        1 {     
-            $pass = "$($word)$($nn)$($word2.ToUpper())"
-            Break
-        }
-        2 { 
-            $pass = "$($word)$($word2)$($nn)$($letterList.ToUpper() | Get-Random)"
-            Break
-        }
-        3 { 
-            $passArr = $($word),$($word2),$($n),$($letterList.ToUpper() | Get-Random),$($letterList.ToUpper() | Get-Random) | Get-Random -Shuffle
-            $pass = [String]::Join("",$passArr)
-            Break
-        }
-        4 {
-            $passArr = $($n),$($letterList.ToUpper() | Get-Random),$($letterList.ToUpper() | Get-Random),$($letterList.ToUpper() | Get-Random),$($nn),$($letterList | Get-Random),$($letterList | Get-Random),$($letterList | Get-Random),$($letterList | Get-Random),$($letterList | Get-Random),$($letterList | Get-Random)  | Get-Random -Shuffle
-            $pass = [String]::Join("",$passArr)
-            Break
-        }
-        5 { 
-            $passArr = $n, $nn, $word, ($letterList | Get-Random), ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random), ($letterList.ToUpper() | Get-Random),($letterList.ToUpper() | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random),($letterList | Get-Random) | Get-Random -Shuffle
-            $pass = [String]::Join("",$passArr)
-            Break
-        }
-    }
+function GeneratePassword($PWStrength) {
+
+    $n = Get-Random -Maximum 1000
+    $word = @((Get-MnemonicWord) , (Get-MnemonicWord) , (Get-MnemonicWord)  , (Get-MnemonicWord)  , (Get-MnemonicWord) , (Get-MnemonicWord))
+    $i=0
+    Do{
+        $pass += $word[$i].substring(0,1).toupper()+$word[$i].substring(1).tolower()
+        $pass += "-"
+        $i++
+    }Until(($i -ge $PWStrength) -or ($i -ge 5))
+        $pass += "$($n)"
     return $pass
 }
 function CrossCounterListUsers {
@@ -184,7 +161,7 @@ function CrossCounterRemoveMember {
     )
     $groupSelected = Get-MgGroup -GroupId $groupID
     Write-Host "------------------------------------------------------------------------------------------------"-ForegroundColor DarkRed
-    Write-Host " REMOVING members from $($groupSelected.DisplayName)" -ForegroundColor Magenta
+    Write-Host " REMOVING members from $($groupSelected.DisplayName)" -ForegroundColor DarkRed
     Write-Host " (Note changes may take a minute or two to cache)" -ForegroundColor DarkGray
     Write-Host "------------------------------------------------------------------------------------------------`n"-ForegroundColor DarkRed
     $i = 0
@@ -232,17 +209,28 @@ function CrossCounterEditUser {
     )
     Do {
         $User = Get-MgUser -UserId $userID
-        Write-Host "=================================================================================================" -ForegroundColor Blue
-        Write-Host "Editing $($User.DisplayName)" -ForegroundColor Green
-        Write-Host "(Note changes may take a minute or two to cache, only options 1-7 preview in this menu)" -ForegroundColor DarkGray
-        Write-Host "=================================================================================================" -ForegroundColor Blue
-<# 
-Certain attributes like 'CompanyName' and 'PostalCode' can only be called va Select-Object... and even then
-there appears to be a bug where some properties refuse to display correctly. As a result- not all Properties in this list
-show a 'preview'; you have to take the script at its word.
-Also, edits take a few moments to tick-over, so while it may appear like changes are not being made- be assured that they are. 
-#>
-Write-Host @"
+        Write-Host "=================================================================================================" -ForegroundColor DarkYellow
+        Write-Host "Editing $($User.DisplayName)    $($User.Mail)" -ForegroundColor Yellow
+        Write-Host "=================================================================================================" -ForegroundColor DarkYellow
+
+        Write-Host @"
+[1.] Edit User Profile
+[2.] Reset User Password
+[3.] TAP Into User Account
+[Q.] Go back
+"@ -ForegroundColor Yellow
+
+        $editUserMenu = Read-Host
+        switch ($editUserMenu) {
+            1 { 
+                Do {
+        <# 
+        Certain attributes like 'CompanyName' and 'PostalCode' can only be called va Select-Object... and even then
+        there appears to be a bug where some properties refuse to display correctly. As a result- not all Properties in this list
+        show a 'preview'; you have to take the script at its word.
+        Also, edits take a few moments to tick-over, so while it may appear like changes are not being made- be assured that they are. 
+        #>
+        Write-Host @"
 [1.] Display Name:            $($User.DisplayName)
 [2.] First Name:              $($User.GivenName)
 [3.] Last Name:               $($User.Surname)
@@ -256,111 +244,126 @@ Write-Host @"
 [11.] Postal Code             $($User.PostalCode)
 [12.] Country                 $($User.Country)
 [13.] Company Name            $($User.CompanyName)
-[14.] Reset Password
-[15.] TAP Account
 "@
-        $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
+                    $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
+                    switch ($chosenOption) {
+                        1 {
+                            $editMade = Read-Host -Prompt "What would you like to change '$($User.DisplayName)' to?"
+                            Update-MgUser -UserId $userID -DisplayName $editMade;
+                            $fullName = $editMade.split(" ",2)
+                            Do{
+                                $yesno = Read-Host -Prompt "Would you also like to change Given Name '$($User.GivenName)' to '$($fullName[0])'`nAnd Surname '$($User.Surname)' to '$($fullName[1])'?`n(y/n)"
+                            }Until(($yesno -eq 'y') -or ($yesno -eq 'n'))
+                            if(($yesno -eq 'y') -or ($yesno -eq 'Y')){
+                                Update-MgUser -UserId $userID -GivenName ($fullName[0])
+                                Update-MgUser -UserId $userID -Surname ($fullName[1])
+                            }
+                        Break
+                        }
+                        2 {
+                            $editMade = Read-Host -Prompt "What would you like to change '$($User.GivenName)' to?"
+                            Update-MgUser -UserId $userID -GivenName $editMade
+                            Break
+                        }
+                        3 {
+                            $editMade = Read-Host -Prompt "What would you like to change '$($User.Surname)' to?"
+                            Update-MgUser -UserId $userID -Surname $editMade
+                            Break
+                        }
+                        4 {
+                            $editMade = Read-Host -Prompt "What would you like to change '$($User.JobTitle)' to?"
+                            Update-MgUser -UserId $userID -JobTitle $editMade
+                            Break
+                        }
+                        5 {
+                            $editMade = Read-Host -Prompt "What would you like to change '$($User.MobilePhone)' to?"
+                            Update-MgUser -UserId $userID -MobilePhone $editMade
+                            Break
+                        }
+                        6{
+                            $editMade = Read-Host -Prompt "What would you like to change '$($User.BusinessPhones)' to?"
+                            Update-MgUser -UserId $userID -BusinessPhones $editMade
+                            Break
+                        }
+                        7 {
+                            $editMade = CrossCounterEditUserMail -userID $userID
+                            if($editMade -ne ""){
+                                Try {
+                                    Write-Host "...`n"
+                                    Update-MgUser -UserId $userID -Mail $editMade
+                                    Write-Host "Success - New email is: $($editMade)"
+                                }Catch{
+                                    Write-Host "Error - Email update failed"  -ForegroundColor DarkRed
+                                }
+                            }
+                            Break
+                        }
+                        8 {
+                            $editMade = Read-Host -Prompt "What would you like to change the department to?"
+                            Update-MgUser -UserId $userID -Department $editMade
+                            Break
+                        }
+                        9 {
+                            $editMade = Read-Host -Prompt "What would you like to change the street address to?"
+                            Update-MgUser -UserId $userID -StreetAddress $editMade
+                            Break
+                        }
+                        10 {
+                            $editMade = Read-Host -Prompt "What would you like to change the city to?"
+                            Update-MgUser -UserId $userID -City $editMade
+                            Break
+                        }
+                        11 {
+                            $editMade = Read-Host -Prompt "What would you like to change postal code to?"
+                            Update-MgUser -UserId $userID -PostalCode $editMade
+                            Break
+                        }
+                        12 {
+                            $editMade = Read-Host -Prompt "What would you like to change the Country to?"
+                            Update-MgUser -UserId $userID -Country $editMade
+                            Break
+                        }
+                        13 {
+                            $editMade = Read-Host -Prompt "What would you like to change the company name to?"
+                            Update-MgUser -UserId $userID -CompanyName $editMade
+                            Break
+                        }
 
-        switch ($chosenOption) {
-            1 {
-                $editMade = Read-Host -Prompt "What would you like to change '$($User.DisplayName)' to?"
-                Update-MgUser -UserId $userID -DisplayName $editMade;
-                $fullName = $editMade.split(" ",2)
-                Do{
-                    $yesno = Read-Host -Prompt "Would you also like to change Given Name '$($User.GivenName)' to '$($fullName[0])'`nAnd Surname '$($User.Surname)' to '$($fullName[1])'?`n(y/n)"
-                }Until(($yesno -eq 'y') -or ($yesno -eq 'n'))
-                if(($yesno -eq 'y') -or ($yesno -eq 'Y')){
-                    Update-MgUser -UserId $userID -GivenName ($fullName[0])
-                    Update-MgUser -UserId $userID -Surname ($fullName[1])
-                }
-            Break
-            }
-            2 {
-                $editMade = Read-Host -Prompt "What would you like to change '$($User.GivenName)' to?"
-                Update-MgUser -UserId $userID -GivenName $editMade
-                Break
-            }
-            3 {
-                $editMade = Read-Host -Prompt "What would you like to change '$($User.Surname)' to?"
-                Update-MgUser -UserId $userID -Surname $editMade
-                Break
-            }
-            4 {
-                $editMade = Read-Host -Prompt "What would you like to change '$($User.JobTitle)' to?"
-                Update-MgUser -UserId $userID -JobTitle $editMade
-                Break
-            }
-            5 {
-                $editMade = Read-Host -Prompt "What would you like to change '$($User.MobilePhone)' to?"
-                Update-MgUser -UserId $userID -MobilePhone $editMade
-                Break
-            }
-            6{
-                $editMade = Read-Host -Prompt "What would you like to change '$($User.BusinessPhones)' to?"
-                Update-MgUser -UserId $userID -BusinessPhones $editMade
-                Break
-            }
-            7 {
-                $editMade = CrossCounterEditUserMail -userID $userID
-                if($editMade -ne ""){
-                    Try {
-                        Write-Host "...`n"
-                        Update-MgUser -UserId $userID -Mail $editMade
-                        Write-Host "Success - New email is: $($editMade)"
-                    }Catch{
-                        Write-Host "Error - Email update failed"  -ForegroundColor DarkRed
                     }
-                }
+                }Until($chosenOption -eq 'q')
                 Break
             }
-            8 {
-                $editMade = Read-Host -Prompt "What would you like to change the department to?"
-                Update-MgUser -UserId $userID -Department $editMade
-                Break
-            }
-            9 {
-                $editMade = Read-Host -Prompt "What would you like to change the street address to?"
-                Update-MgUser -UserId $userID -StreetAddress $editMade
-                Break
-            }
-            10 {
-                $editMade = Read-Host -Prompt "What would you like to change the city to?"
-                Update-MgUser -UserId $userID -City $editMade
-                Break
-            }
-            11 {
-                $editMade = Read-Host -Prompt "What would you like to change postal code to?"
-                Update-MgUser -UserId $userID -PostalCode $editMade
-                Break
-            }
-            12 {
-                $editMade = Read-Host -Prompt "What would you like to change the Country to?"
-                Update-MgUser -UserId $userID -Country $editMade
-                Break
-            }
-            13 {
-                $editMade = Read-Host -Prompt "What would you like to change the company name to?"
-                Update-MgUser -UserId $userID -CompanyName $editMade
-                Break
-            }
-            14 {
+            2 { 
                 CrossCounterEditUserPassword -userID $userID
                 Break
             }
-            15 {
-                $TAP = New-MgUserAuthenticationTemporaryAccessPassMethod -UserID $UserID -IsUsableOnce -LifetimeInMinutes 60
+            3 {
+                #TAP Account
+                Write-Host "Tapping Account..." -ForegroundColor DarkBlue
+                Try{
+                    $TAP = New-MgUserAuthenticationTemporaryAccessPassMethod -UserID $UserID -IsUsableOnce -LifetimeInMinutes 60
+                    Write-Host "Your TAP is useable once in the next 60 minutes." -ForegroundColor DarkBlue
+                    Write-Host "$($User.Mail)"
+                    Write-Host "$($TAP.TemporaryAccessPass)" -ForegroundColor Cyan
+                    Set-Clipboard -Value "$($TAP.TemporaryAccessPass)"
+                    Write-Host "Copied to Clipboard." -ForegroundColor Blue
+                    Start-Process msedge.exe -ArgumentList "-inprivate https://portal.office.com/"
+                }Catch{
+                    $errorCatch = $Error[0]
+                    Write-Host $errorCatch -ForegroundColor Red
+                    Write-Host "If you did not receive a TAP above, then one was not generated for you." -ForegroundColor Red
+                }
                 Write-Host
-                Write-Host "Your TAP is useable once in the next 60 minutes." -ForegroundColor DarkBlue
-                Write-Host "$($TAP.TemporaryAccessPass)"
-                Write-Host "Copied to Clipboard." -ForegroundColor Blue
-                Set-Clipboard -Value "$($User.Mail)"
-                Set-Clipboard -Value "$($TAP.TemporaryAccessPass)"
-                Write-Host
-                Start-Process -FilePath "C:\Program Files\Microsoft\Edge\Application\msedge.exe"-ArgumentList "-inprivate https:\\www.portal.office.com\"
+                Break 
+            }
+            "q" {
                 Break
             }
+            Default {
+                Write-Host "Invalid Input - Please select a menu option, or 'q' to go back." -ForegroundColor Red
+            }
         }
-    }Until($chosenOption -eq 'q')
+    }Until($editUserMenu -eq "q")
 }
 function CrossCounterEditUserMail {
     param (
@@ -447,82 +450,58 @@ function CrossCounterEditUserPassword {
     Write-Host "-----------------------------" -ForegroundColor DarkBlue
     Write-Host " Reset Password..." -ForegroundColor Blue
     Write-Host "-----------------------------`n" -ForegroundColor DarkBlue
-    Write-Host @"
-Passwords must not contain the user's ID; be least 8 characters long; and have at least 3 of the following: 
+    Do{
+        $genPass = @( (GeneratePassword -PWStrength 1) , (GeneratePassword -PWStrength 2) , (GeneratePassword -PWStrength 3) ,(GeneratePassword -PWStrength 4) , (GeneratePassword -PWStrength 5) )
+        $i=0
+        Do{
+            Write-Host "[$($i+1).] $($genPass[$i])" -ForegroundColor Cyan
+            $i++
+        }Until($i -ge 5)
+        Write-Host "[C.] Custom Input" -ForegroundColor DarkCyan
+        Write-Host "[R.] Re-Shuffle Choices" -ForegroundColor DarkCyan
+        Write-Host "[Q.] Go Back (No Change)" -ForegroundColor Gray
+        $resetPasswordMenu = Read-Host
+        switch ($resetPasswordMenu) {
+            "c" { 
+                Write-Host @"
+Passwords must be 8+ characters long; cannot contain the user's ID; and have at least 3 of the following: 
 Upper-case letter, lower-case letter, number, symbol.
 "@ -ForegroundColor Cyan
-#populate list of preset options
-    $i = 0
-    $editMade = ""
-    $passOpt = "0","custom","No Change","1","2","3","4","5"
-    $i++
-    $passOpt[$i] = "";
-    Write-Host "`n$($i). - Custom input -"
-    $i++
-    $passOpt[$i] = "";
-    Write-Host "`n$($i). - No Change -"
-    $i++
-    $passOpt[$i] = "$(GeneratePassword -PWStrength 1)"
-    Write-Host "`n$($i). $($passOpt[$i])"                 
-    $i++
-    $passOpt[$i] = "$(GeneratePassword -PWStrength 2)"
-    Write-Host "`n$($i). $($passOpt[$i])"
-    $i++
-    $passOpt[$i] = "$(GeneratePassword -PWStrength 3)"
-    Write-Host "`n$($i). $($passOpt[$i])"
-    $i++
-    $passOpt[$i] = "$(GeneratePassword -PWStrength 4)"
-    Write-Host "`n$($i). $($passOpt[$i])"
-    $i++
-    $passOpt[$i] = "$(GeneratePassword -PWStrength 5)"
-    Write-Host "`n$($i). $($passOpt[$i])"
-        #prompt user to select option
-        $editMade = Read-Host -Prompt "`nPick an option above to reset the user's password`n"
-    switch ($editMade) {
-        0 { 
-            $newPass =  ""
-            Break
-        }
-        1 {
-            $custInput = Read-Host -Prompt "-CUSTOM-`nPasswords can't contain the user's ID and need to be at least 8 characters long with at least 3 of the following: upper-case letters, lower-case letters, numbers and symbols.`nWhat would you like to change the password to?`n"
-            if($custInput.Length -ge 8){
-            $newPass =  $custInput
-            }else{
-                Write-Host "Error - Passwords can't contain the user's ID and should be at least 8 characters long with at least 3 of the following: upper-case letters, lower-case letters, numbers and symbols."
-                Write-Host "Plase try again with a different password." -ForegroundColor Red
-                $newPass =  ""
+                $customPass = Read-Host -Prompt "Input desired password"
+                if($customPass.Length -ge 8){
+                    $newPass = $customPass
+                }
+             }
+            "r" { 
+                Break
+             }
+            "q" { 
+                Break 
             }
-            Break
+            {$_ -ge 1 -and $_ -le 5} {
+                $newPass = $genPass[$resetPasswordMenu-1]
+                Break
+            }
+            Default {
+                Write-Host "Invalid Input - Please make a choice above, or 'q' to go back without changing the password." -ForegroundColor Red
+              }
         }
-        2 {
-            $newPass =   ""
-            Break
-        }
-        'q' {
-            $newPass =   ""
-            Break
-        }
-        Default {
-            if($passOpt[$editMade].Length -ge 8){
-                $newPass = $passOpt[$editMade]
-            }else{
-                Write-Host "Error - Passwords can't contain the user's ID and should be at least 8 characters long with at least 3 of the following: upper-case letters, lower-case letters, numbers and symbols."
-                Write-Host "Plase try again with a different password."  -ForegroundColor Red
-                $newPass =  ""
+        if($newPass){
+            Try {
+                Write-Host "Resetting password to $($newPass)" -ForegroundColor Blue
+                $authMethod = Get-MgUserAuthenticationMethod -UserId $userID
+                Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $newPass
+                Write-Host "   ------>        $($newPass)        <------" -ForegroundColor Cyan
+                Set-Clipboard -Value $newPass
+                Write-Host "Copied to clipboard." -ForegroundColor Blue
+                $resetPasswordMenu = 'q'
+            }Catch{
+                Write-Host $_ -ForegroundColor Red
+                Write-Host "Password Reset FAILED" -ForegroundColor DarkRed
             }
         }
-    }
-    if(($newPass -ne "")){
-        try {
-            $authMethod = Get-MgUserAuthenticationMethod -UserId $userID
-            Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $newPass
-            Write-Host "Password Reset... SUCCESS" -ForegroundColor DarkGreen
-            Write-Host "   ------>        $($newPass)        <------" -ForegroundColor Blue
-        }catch{
-            Write-Host $_ -ForegroundColor Red
-            Write-Host "Password Reset... FAILED" -ForegroundColor DarkRed
-        }
-    }
+    }Until($resetPasswordMenu -eq "q")
+        
 }
 function CrossCounterEditAll {
     Do {
