@@ -24,6 +24,15 @@ This refreshes and re-displays the user list. Note that if changes are made to a
 
 ## 'Edit User' menu
 This menu allows for quick changes to a chosen user in the tenant.
+- [1.] Edit User Profile
+  - *See below*
+- [2.] Reset User Password
+  - This option enables you choose a new password from a list of presets, *or* input a custom password. Users will be prompted to change this password on next sign-in.
+- [3.] TAP Into User Account
+  - This will create a new one-time-use **T**emporary **A**ccess **P**assword; valid for the user for the next 60 minutes. It also copies both the user's email and the TAP to the clipboard, and opens a new Edge private window to portal.office.com for convenient sign-in to the user's account.
+- [Q.] Go back
+
+### *Edit User Profile:*
 - [1] Display Name: *
 - [2] First Name: *
 - [3] Last Name: *
@@ -37,8 +46,6 @@ This menu allows for quick changes to a chosen user in the tenant.
 - [11] Postal Code
 - [12] Country
 - [13] Company Name
-- [14] Reset Password
-- [15] TAP Account
 
 **shows preview*
 
@@ -46,12 +53,9 @@ These options are fairly self explanatory. There is some extra functionality for
 - **Display Name**
   - Editing the Display name will prompt you to change the 'First Name' and 'Last Name' options to match.
 - **Email**
-  - Changing a user's email presents you with a list of preset options that utilise the 'First Name' and 'Last Name' profile items of the user. It also allows for custom input. ***Note:** This does not change the user's principal name*.
-- **Reset Password**
-  - This option enables you choose a new password from a list of presets, *or* input a custom password. Users will be prompted to change this password on next sign-in.
-- **TAP Account**
-  - This will create a new one-time-use **T**emporary **A**ccess **P**assword; valid for the user for the next 60 minutes. It also copies both the user's email and the TAP to the clipboard, and opens a new Edge private window to portal.office.com for convenient sign-in to the user's account.
-  ## 'Edit All' menu
+  - Changing a user's email presents you with a list of preset options that utilise the 'First Name' and 'Last Name' profile items of the user. It also allows for custom input. ***Note:** This does not change the user's principal name (UPN)*.
+
+## 'Edit All' menu
 The 'Edit All' commands apply  to all the users in the tenant.
 - [1] Company Name
 - [2] Department

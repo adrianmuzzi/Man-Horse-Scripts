@@ -2,7 +2,7 @@
 
 ############ DECLARE SOME STTUFF
 Try{
-Add-Type -AssemblyName System.Security 									#We need this .NET class to do the cryptography stuff
+	Add-Type -AssemblyName System.Security 									#We need this .NET class to do the cryptography stuff
 }Catch{
 	Write-Host @"
 _____________FATAL ERROR_______________
@@ -35,7 +35,7 @@ Write-Host @"
                                 _|||'""'||\
                               _|||/  .''".|\
                             _||||/   |    \|_
-                           /|||||    \    /  \
+                           /|||||    \    /   \
                          _|||||||     '.  \ _ /
                         /||||||||       \
              __.---._  /|||||||||        |   _.---.__
@@ -49,9 +49,9 @@ Write-Host @"
         \|||||    __ || _  .^.\| |/.^.  _ || __    |||||/
          \||||   / _\|/ = /_o_\   /_o_\ = \|/_ \   ||||/
           \||/   |'.-     \   /   \   /     -.'|   \||/
-         _||'    \ |    _  \ /  _  \ /    _    | /    '||_
-        /  \      \\_  ( '--V(     )V--' )  _//      /. \
-        \ _/       \_/|  /_   \___/   _\  |\_/       \_\/
+         _||'    \ |    _  \ /  _  \ /    _    |   '||_
+        /  \      \\_  ( '--V(     )V--' )  _//    /  \
+        \__/       \_/|  /_   \___/   _\  |\_/     \__/
                       | /|\\  \   /  //|\ |
                       |  | \'._'-'_.'/ |  |
                       |  |  '-.'''.-'  |  |
@@ -286,9 +286,9 @@ Do{
 
 }Until($mm -eq "q")
 Try{
-Remove-Item $LDfile
+	Remove-Item $LDfile
 }Catch{
-Write-Host "Heads up! could not remove`n$($LDFile)" -ForegroundColor Red
+	Write-Host "Heads up! could not remove`n$($LDFile)" -ForegroundColor Red
 }
 #														END OF MAIN MENU
 #========================================================================================================================================================

@@ -26,17 +26,15 @@ If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 $ErrorActionPreference = 'silentlycontinue'
 
 $DebloatFolder = "C:\Temp\Windows10Debloater"
-If (Test-Path $DebloatFolder) {
+If(Test-Path $DebloatFolder) {
     Write-Output "$DebloatFolder exists. Skipping."
-}
-Else {
+}else{
     Write-Output "The folder '$DebloatFolder' doesn't exist. This folder will be used for storing logs created after the script runs. Creating now."
     New-Item -Path "$DebloatFolder" -ItemType Directory
     Write-Output "The folder $DebloatFolder was successfully created."
 }
 
 Start-Transcript -OutputDirectory "$DebloatFolder"
-
 Add-Type -AssemblyName PresentationCore, PresentationFramework
 
 Function DebloatBlacklist {
@@ -104,7 +102,7 @@ Function DebloatBlacklist {
         #"*Microsoft.WindowsCalculator*"
         #"*Microsoft.WindowsStore*"
     )
-    ForEach-Object ($Bloat in $Bloatware) {
+    ForEach-Object ($Bloat -in $Bloatware) {
         Get-AppxPackage -Name $Bloat| Remove-AppxPackage
         Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $Bloat | Remove-AppxProvisionedPackage -Online
         Write-Output "Trying to remove $Bloat."
@@ -137,7 +135,7 @@ Function Remove-Keys {
         "HKCR:\Extensions\ContractId\Windows.ShareTarget\PackageId\ActiproSoftwareLLC.562882FEEB491_2.6.18.18_neutral__24pqs290vpjk0"
     )
     #This writes the output of each key it is removing and also removes the keys listed above.
-    ForEach-Object ($Key in $Keys) {
+    ForEach-Object ($Key -in $Keys) {
         Write-Output "Removing $Key from registry"
         Remove-Item $Key -Recurse
     }
@@ -363,6 +361,7 @@ Start-Sleep 1
             }
         }
 #>
+
 
 Write-Host "Hyperno complete. RESTART THE COMPUTER?"
 $Prompt0 = Read-Host "[y] / [n] "
