@@ -30,3 +30,5 @@ Say you wanted to replace a user's `Normal.dotm` file, found at `%appdata%\Micro
 - Duais will rename `Normal.dotm` found at `$($env:appdata)\Microsoft\Templates\` to `Normal.dotm.bak`
 - Duais will then copy the file at `C:\Temp\Duais\Normal.dotm` to `$($env:appdata)\Microsoft\Templates\`
 - Duais will then validate the new file's hash to make sure the copy was a success.
+
+__A log file is stored in `C:\MDM\Duais.log`__
