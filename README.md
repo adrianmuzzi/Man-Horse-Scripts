@@ -17,6 +17,9 @@ At a glance:
 ## [HiJinx](./HiJinx/)
 *HiJinx* rips account login data from Chrome, Edge and most other Chromium browsers.
 
+## [Duais](./Duais/)
+*Duais* backs up a specified file in one location, and replaces it with another.
+
 ## [Still in Development:](./Dev/)
 
 #### **Alumandin**
@@ -28,7 +31,6 @@ Detects and removes bloatware commonly found on Windows devices.
 #### **Wotan**
 Copies folders from Local App Data for quick backup/transfer.
 
-### Template Scripts:
+## Template Scripts:
 Baby scripts that are little more than Ascii art.
-#### **Duais**
 #### **Maluckyday**
