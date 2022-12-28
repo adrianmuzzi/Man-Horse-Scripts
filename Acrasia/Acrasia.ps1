@@ -243,14 +243,14 @@ Do{
         }
         Default {
             Try {
-            if(($AcrasiaProfiles.count -ge $opt1)-and($opt1 -gt 0)){
-                $selectedProfile = $AcrasiaProfiles[$opt1-1].name
-                $selectedName = $AcrasiaProfiles[$opt1-1].value
-                AcrasiaShortcuts
-                $AcrasiaProfiles=AcrasiaRefreshProfiles
-            }else{
-                Write-Host "Enter a number between 1 and $($AcrasiaProfiles.count)" -ForegroundColor Red
-            }
+                if(($AcrasiaProfiles.count -ge $opt1)-and($opt1 -gt 0)){
+                    $selectedProfile = $AcrasiaProfiles[$opt1-1].name
+                    $selectedName = $AcrasiaProfiles[$opt1-1].value
+                    AcrasiaShortcuts
+                    $AcrasiaProfiles=AcrasiaRefreshProfiles
+                }else{
+                    Write-Host "Enter a number between 1 and $($AcrasiaProfiles.count)" -ForegroundColor Red
+                }
             }Catch{
                 $searchedProfile = AcrasiaSearch -search $opt1
                 if($searchedProfile -in $AcrasiaProfiles){

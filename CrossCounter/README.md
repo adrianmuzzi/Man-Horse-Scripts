@@ -10,6 +10,8 @@ The `MAIN MENU` is the highest level menu in Cross Counter. Upon first singing i
 -  ### Enter the number listed next to the user you wish to edit
  Leads to the *Edit User* menu for the user selected from the user list.
 
+ **Note:** You can also type the desired user's name (or just enough of the name to be discernable) and CrossCounter will bring up the user who matches your search.
+
 - ### all
 Leads to the *Edit All Users* menu.
 

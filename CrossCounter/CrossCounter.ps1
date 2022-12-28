@@ -618,6 +618,28 @@ function CrossCounterEditAll {
         }
     } Until ($chosenOption -eq 'q')
 }
+function CrossCounterSearch ($search){
+    Write-host "Searching users for $($search)..." -ForegroundColor Yellow
+    $result = $userList.DisplayName.ToLower() | ForEach-Object { if($_.contains($search.ToLower())){$_} }
+    Try {
+        if($result.count -gt 1){
+            Write-host "CrossCounter Found $($result.count) results containing '$($search)', please refine your search..." -ForegroundColor Yellow
+            $i=0
+            Do {
+                Write-Host "    - $($result[$i])" -ForegroundColor DarkYellow
+                $i++
+            }Until($i -ge $result.count)
+        }else{
+            if($userList.DisplayName.ToLower() -match ($result.ToLower())){
+                return $userList | Where-Object { $_.DisplayName.ToLower() -match $result.ToLower()}
+            }else{
+                return "No profile was found with that name..."
+            }
+        }   
+    } Catch {
+        return "Error - No profile"
+    }
+}
 
 #================================================================================================================================================================================================================================================
 #================================================================================================================================================================================================================================================
@@ -744,15 +766,25 @@ Do {
 
 #If a recognised keyword isn't input, check if it was the number of a user in the userlist
         default {
-            $User = $userList[($userInput1-1)]
-            $userID = $User.ID
             Try {
-                $userList = Get-MgUser -All -Count userCount -ConsistencyLevel eventual -OrderBy DisplayName
-                $User = Get-MgUser -UserId $userID
-                CrossCounterEditUser -userID $userID
+                if(($userList.count -ge $userInput1)-and($userInput1 -gt 0)){
+                    $userList = Get-MgUser -All -Count userCount -ConsistencyLevel eventual -OrderBy DisplayName
+                    $User = $userList[($userInput1-1)]
+                    $userID = $User.ID
+                    CrossCounterEditUser -userID $userID
+                }else{
+                    Write-Host "Please input an option listed in the menu."   -ForegroundColor Red
+                }
             } Catch {
-                Write-Host "Invalid Input - Enter one of the menu commands...`n"  -ForegroundColor Red
-            }
+                $searchedProfile = CrossCounterSearch -search $userInput1
+                if($searchedProfile -in $userList){
+                    $User = $searchedProfile
+                    $userID = $User.ID
+                    CrossCounterEditUser -userID $userID
+                }else{
+                    Write-Host $searchedProfile -ForegroundColor Red
+                }
+            }      
         }
     }
 #If 'q' is entered instead of a user ID... We outta here
