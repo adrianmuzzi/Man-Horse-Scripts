@@ -1,4 +1,4 @@
-<# Barclay McClay - 2022 - ver0.1 #>
+<# Barclay McClay - 2022 #>
 #This script takes a file at a give filepath... renames it, then replaces it with another specified file.
 #You need to configure the script manually by changing the variables up top here:
 

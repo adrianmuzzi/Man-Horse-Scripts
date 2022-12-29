@@ -15,7 +15,7 @@ $FileHash =         #Hash of the file you want to end up with
 
 $hash = Get-FileHash -Path $FileLocation
 
-if ($hash -eq $FileHash) {
+if ($hash.Hash -eq $FileHash) {
     Write-Host "Huzzah. File validated."
     Stop-Transcript 
     exit 0
