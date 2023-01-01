@@ -668,6 +668,7 @@ Do {
 |   Enter the number listed next to the user you wish to edit    |
 |   all    - edit ALL users in tenant                            |
 |   groups - list groups in tenant                               |
+|   new    - on board new user                                   |
 |   users  - re-list users                                       |
 |   q      - sign out & exit                                     |
 |----------------------------------------------------------------|
@@ -692,7 +693,6 @@ Do {
 |================================================================|
 "@ -ForegroundColor Yellow
                 $chosenGroup = Read-Host
-                #Try {
                     if(($chosenGroup -ne 'q') -and ($chosenGroup -ne '')){
                         $groupSelected = $groupList[$chosenGroup-1]
                         $groupID = $groupSelected.ID
@@ -739,13 +739,27 @@ Do {
                             }Until($chosenOption -eq 'q')
                         }
                     }
-                # } Catch {
-                #     Write-Host "Invalid Input - No group listed under that"
-                # }
                 }Until($chosenGroup -eq 'q')
                 Break
         }
-
+#'new' to create new user
+        'new' {
+            Do {
+                Write-Host @"
+|================================================================|
+|                        NEW USER MENU                           |
+|   This feature is currently under development... sorry!        |
+|   q         - go back                                          |
+|================================================================|
+"@ -ForegroundColor Red
+                $newUserOpt = Read-Host
+                switch($newUserOpt){
+                    'q' {
+                        Break
+                    }
+                }
+            }Until($newUserOpt = 'q')
+        }
 #Input 'users' to re-list all the users in the tenant
         'users' {
             $userList = CrossCounterListUsers
@@ -788,7 +802,7 @@ Do {
         }
     }
 #If 'q' is entered instead of a user ID... We outta here
-}Until(($userInput1-eq 'q'))
+}Until($userInput1 -eq 'q')
 # 
 # If we've made it out of the Do{}Until() loops somehow- then disconnect and exit gracefully.
 #

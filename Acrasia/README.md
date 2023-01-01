@@ -1,5 +1,4 @@
 # Acrasia
-__Ver 0.2__
 
 *Acrasia* *(Uh-cray-shuh)* is for managing M365 tenants spread across multiple Edge profiles.
 
@@ -11,7 +10,7 @@ Beyond just quick-launching Edge into a specific profile, Acrasia will increasin
 On launch, Acrasia searches for a file called "`%localappdata%\Local\Microsoft\Edge\User Data\_AcrasiaData.txt`"
 If no such file is found, Acrasia will create one for you after running through setup.
 
-'Setup' is a necessary (if admittedly tedious) process wherein each of your Edge profiles are opened one-by-one. You check what profile it is, and input your desired nickname for it into Acrasia. The second profile opens upon inputting a nickname for the first, and so on. It will continue through this process until your've nicknamed *all* of your Edge profiles, then it stores the collected data as a hash table in `_Acrasia.txt` (see path above).
+During a 'setup', Acrasia parses the registry entires Edge creates for each of your user profiles. It stores the collected data as a hash table in `_Acrasia.txt` (see path above).
 
 The reason for this is that Chromium (Edge) stores and organises each profile under an unfortunatley generic name; '*Profile 1*'.... '*Profile 2*'... etc.
 
@@ -29,8 +28,10 @@ Takes you to the `Acrasia Shortcuts` *(see below)* section for the chosen profil
 - ### setup
 Runs Acrasia setup again
 
+Running 'setup' from the main menu will also open your `_AcrasiaData.txt` file. You can edit the 'nickname' Acrasia uses for each profile by editing the values on the right-side of the equals-sign.
+
 - ### q
-'q' in the main menu will exit PowerShell.
+'q' in the main menu will exit Acrasia.
 
 ## Acrasia Shortcuts
 
