@@ -38,7 +38,7 @@ function GeneratePassword($PWStrength) {
         $pass += "$($n)"
     return $pass
 }
-function CrossCounterListUsers {
+function CrossCounterListUsers($property){
     Write-Host @"
 ===============================================================================
           ___  ___  __   __
@@ -49,13 +49,27 @@ function CrossCounterListUsers {
     $uL = Get-MgUser -All -Count userCount -ConsistencyLevel eventual -OrderBy DisplayName
     $i = 0
     Do{
-        Write-Host "$($i+1). $($uL[$i].DisplayName)       --- ---       $($uL[$i].Mail)"
+        switch($property){
+            "mail" {
+                $prop = " - $($uL[$i].Mail)"
+            }
+            "mobile" {
+                $prop = " - $($uL[$i].MobilePhone)"
+            }
+            "jobTitle" {
+                $prop = " - $($uL[$i].JobTitle)"
+            }
+        }
+        Write-Host "$($i+1). $($uL[$i].DisplayName)$($prop)"
         $i++
     }Until($i -ge ($userCount))
+    
     Write-Host "`n$userCount users - Listed alphabetically by display name" -ForegroundColor DarkGray
     Write-Host "Press < ALT + SPACE , E , F > to search within Powershell console" -ForegroundColor DarkGray
     return $uL
 }
+
+
 function CrossCounterListGroups {
     Write-Host @"
 ===============================================================================                                                     
@@ -224,6 +238,7 @@ function CrossCounterEditUser {
         switch ($editUserMenu) {
             1 { 
                 Do {
+                    $User = Get-MgUser -UserId $userID
         <# 
         Certain attributes like 'CompanyName' and 'PostalCode' can only be called va Select-Object... and even then
         there appears to be a bug where some properties refuse to display correctly. As a result- not all Properties in this list
@@ -231,6 +246,7 @@ function CrossCounterEditUser {
         Also, edits take a few moments to tick-over, so while it may appear like changes are not being made- be assured that they are. 
         #>
         Write-Host @"
+
 [1.] Display Name:            $($User.DisplayName)
 [2.] First Name:              $($User.GivenName)
 [3.] Last Name:               $($User.Surname)
@@ -244,7 +260,7 @@ function CrossCounterEditUser {
 [11.] Postal Code             $($User.PostalCode)
 [12.] Country                 $($User.Country)
 [13.] Company Name            $($User.CompanyName)
-"@
+"@ -ForegroundColor Yellow
                     $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
                     switch ($chosenOption) {
                         1 {
@@ -762,8 +778,39 @@ Do {
         }
 #Input 'users' to re-list all the users in the tenant
         'users' {
-            $userList = CrossCounterListUsers
-        Break
+            Do {
+                Write-Host @"
+|======================================|
+            LIST USERS                
+[1.] Name only                             
+[2.] Name + Email                   
+[3.] Name + Mobile Phone     
+[4.] Name + Job Title               
+|======================================|
+"@ -ForegroundColor Yellow
+                $newUserOpt = Read-Host
+                switch($newUserOpt){
+                    1{
+                        $userList = CrossCounterListUsers
+                    }
+                    2{
+                        $userList = CrossCounterListUsers -Property "email"
+                    }
+                    3{
+                        $userList = CrossCounterListUsers -Property "mobile"
+                    }
+                    4{
+                        $userList = CrossCounterListUsers -Property "jobTitle"
+                    }
+                    'q' {
+                        Break
+                    }
+                    default{
+                        $userList = CrossCounterListUsers
+                    }
+                }
+            }Until($newUserOpt)
+
         }
 
 # q to exit

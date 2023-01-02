@@ -153,7 +153,7 @@ Do{
                         }      
                     }
                 }
-            }Until($templateUser)
+            }Until($templateUser -or $userInput1 -eq "q")
             break;
         }
         "q" { 
