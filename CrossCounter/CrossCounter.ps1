@@ -221,16 +221,24 @@ function CrossCounterEditUser {
     param (
         $userID
     )
+
     Do {
         $User = Get-MgUser -UserId $userID
         Write-Host "=================================================================================================" -ForegroundColor DarkYellow
         Write-Host "Editing $($User.DisplayName)    $($User.Mail)" -ForegroundColor Yellow
         Write-Host "=================================================================================================" -ForegroundColor DarkYellow
-
+        $blocklist = Get-Mguser -Filter "accountEnabled eq false" #check if account is sign-in blocked
+        if($blocklist.Id.Contains($userID)){
+            Write-Host "USER ACCOUNT IS DISABLED" -ForegroundColor Red
+            $accountEnabled = $false
+        }else{
+            $accountEnabled = $true
+        }
         Write-Host @"
 [1.] Edit User Profile
 [2.] Reset User Password
 [3.] TAP Into User Account
+[4.] Enable/Disable Account
 [Q.] Go back
 "@ -ForegroundColor Yellow
 
@@ -371,6 +379,16 @@ function CrossCounterEditUser {
                 }
                 Write-Host
                 Break 
+            }
+            4{
+                #enable/disable account
+                if($accountEnabled){
+                    Write-Host "Disabling account..." -ForegroundColor DarkYellow
+                    Update-MgUser -UserID $userID -AccountEnabled:$false
+                }else{
+                    Write-Host "Re-enabling account..." -ForegroundColor DarkYellow
+                    Update-MgUser -UserID $userID -AccountEnabled:$true
+                }
             }
             "q" {
                 Break

@@ -24,6 +24,8 @@ Leads to the *New User* menu.
 - ### users
 This refreshes and re-displays the user list. Note that if changes are made to a user's display name- this may lead to changes in the list ordering (as it is organised alphabetically). Whenever you select a user from the user list,  the 'number' you input to do so is always relevant to the most recent time the user list has been refreshed and displayed.
 
+This can also be used to quickly see which users have mobile numbers/mail addresses attached to their profiles.
+
 - ### q
 'q' In the main menu will sign out of MgGraph and exit powershell.
 
@@ -35,6 +37,8 @@ This menu allows for quick changes to a chosen user in the tenant.
   - This option enables you choose a new password from a list of presets, *or* input a custom password. Users will be prompted to change this password on next sign-in.
 - [3.] TAP Into User Account
   - This will create a new one-time-use **T**emporary **A**ccess **P**assword; valid for the user for the next 60 minutes. It also copies both the user's email and the TAP to the clipboard, and opens a new Edge private window to portal.office.com for convenient sign-in to the user's account.
+- [4.] Enable/Disable Account
+  - This will toggle "sign-in enabled" for the selected user's account.
 - [Q.] Go back
 
 ### *Edit User Profile:*
