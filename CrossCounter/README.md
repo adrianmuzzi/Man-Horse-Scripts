@@ -39,6 +39,8 @@ This menu allows for quick changes to a chosen user in the tenant.
   - This will create a new one-time-use **T**emporary **A**ccess **P**assword; valid for the user for the next 60 minutes. It also copies both the user's email and the TAP to the clipboard, and opens a new Edge private window to portal.office.com for convenient sign-in to the user's account.
 - [4.] Enable/Disable Account
   - This will toggle "sign-in enabled" for the selected user's account.
+- [5.] Off board user
+  - This will connect to the ExchangeOnline module and run the user through an automated off boarding script.
 - [Q.] Go back
 
 ### *Edit User Profile:*
@@ -107,4 +109,4 @@ The `NEW USER` Menu is for on boarding a new user into the tenant. Azure AD/M365
 
 **What scopes does Cross Counter use to connect?**
 
->` Connect-MgGraph -Scopes "User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All",Calendars.ReadWrite.Shared`
+>` Connect-MgGraph -Scopes "Organization.ReadWrite.All","User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","UserAuthenticationMethod.ReadWrite.All",Calendars.ReadWrite.Shared`

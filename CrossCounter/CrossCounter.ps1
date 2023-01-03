@@ -118,6 +118,117 @@ function CrossCounterListMembers {
     Write-Host "`n$memberCount members of $($groupSelected.DisplayName) - Listed alphabetically..."
     return $mL
 }
+
+function CrossCounterOffboard($UserID) {
+    $User = Get-MgUser -UserId $UserID
+    $offboardlog = "Off boarding $($User.DisplayName)`n" #we'll use this to create a log of the off boarding
+#	1. Change M365 Password
+    Write-Host "Resetting password..." -ForegroundColor DarkYellow
+    Try{
+        $newPass = GeneratePassword -PWStrength 4
+        $authMethod = Get-MgUserAuthenticationMethod -UserId $userID
+        Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $newPass
+        $offboardlog += "`nUser password reset: $($newPass)"
+    }Catch{
+        $offboardlog += $_
+        $offboardlog += "`nPassword reset failed."
+        Write-Host "Password reset failed (check the log)." -ForegroundColor Red
+    }
+#    2. Convert account to Shared Mailbox
+    $exchangeUser = Get-Mailbox | Where-Object -Property ExternalDirectoryObjectId -eq $UserID
+    Write-Host "Converting to shared mailbox..." -ForegroundColor DarkYellow
+    Try{
+        Set-Mailbox -Identity $exchangeUser -Type Shared
+        $offboardlog += "`nConverted $($User.Mail) to shared mailbox."
+    }Catch{
+        Write-Host $_
+        Write-Host "Could not convert to shared mailbox." -ForegroundColor DarkRed
+        $offboardlog += "`nCouldn't convert to shared mailbox."
+    }
+#	3. Set Out of Office / Forwarding from shared mailbox
+    Write-Host "Configuring auto-reply message..." -ForegroundColor DarkYellow
+    Write-Host "Set the mailbox's auto reply for 'internal' messages (enter to skip)" -ForegroundColor Yellow
+    $internalMsg = Read-Host
+    Write-Host "Set the mailbox's auto reply for 'external' messages (enter to skip)" -ForegroundColor Yellow
+    $externalMsg = Read-Host
+    if($internalMsg -eq "" -and $externalMsg-eq ""){
+        $AutoReplyState = "Disabled"
+    }else{
+        $AutoReplyState = "Enabled"
+    }
+    Set-MailboxAutoReplyConfiguration -Identity $exchangeUser -AutoReplyState $AutoReplyState -InternalMessage $internalMsg -ExternalMessage $externalMsg -ExternalAudience All
+    $offboardlog += "`nInternal auto reply set to:`n$($internalMsg)"
+    $offboardlog += "`nExternal auto reply set to:`n$($externalMsg)"
+#	4. Remove user from Global Address List
+    Write-Host "Hiding from Global Address List..." -ForegroundColor DarkYellow
+    Set-Mailbox -Identity $exchangeUser -HiddenFromAddressListsEnabled $true
+    $offboardlog += "`nUser removed from Global Address List"
+    
+#	5. Remove from all M365 Groups
+    Write-Host "Removing from M365 groups..." -ForegroundColor DarkYellow
+    $groups = Get-MgUserMemberOf -UserID $userID -Count membershipCount -ConsistencyLevel eventual
+    $groups = $groups.id
+    $i=0
+    Do{
+        $groupId = $groups[$i]
+        $groupName = (Get-MgGroup -GroupId $groupId).DisplayName
+        if($groupName -ne "All Users"){
+            Try{
+                Write-Host "Removing from group - $($groupName)" -ForegroundColor DarkYellow
+                $offboardlog += "`nRemoving from group - $($groupName)"
+                Remove-MgGroupMemberByRef -GroupId $groupId -DirectoryObjectId $UserID 2> $null
+            }Catch{
+                Write-Host $_
+                $offboardlog += "Error removing from group - $($groupName)"
+                Write-Host "Graph API Cannot Update a group with dynamic membership, a mail-enabled security group, or a distribution list." -ForegroundColor DarkRed
+            }
+        }
+        $i++
+    }Until($i -ge $groups.count)
+#   Now do the same for distro lists
+    Write-Host "Removing from mail distribution groups..." -ForegroundColor DarkYellow
+    $offboardlog += "`nRemoving from mail distribution groups..."
+    $groups = Get-MgUserMemberOf -UserID $userID -Count membershipCount -ConsistencyLevel eventual
+    $groups = $groups.id
+    $i=0
+    Do{
+        Try{
+            $distroGroup = Get-DistributionGroup | Where-Object ExternalDirectoryObjectId -eq $groups[$i]
+            Remove-DistributionGroupMember -Identity $distroGroup -Member $user.DisplayName -Confirm:$false
+            Write-Host "Removing from $($distroGroup.name)"
+            $offboardlog += "`n$($distroGroup.name)"
+        }Catch{
+            Write-Host $_
+            $offboardlog += "`nError detected while removing from group."
+        }
+        $i++
+    }Until($i -ge $groups.count)
+#	6. Remove License on M365
+        Write-Host "Removing user licenses..." -ForegroundColor DarkYellow
+        Try{
+        $license = Get-MgSubscribedSku -All | Where-Object AppliesTo -eq 'User'
+        Set-MgUserLicense -UserId $UserID -AddLicenses @() -RemoveLicenses @($license.SkuId)
+        $offboardlog += "Licenses removed"
+        }Catch{
+            Write-Host $_
+            Write-Host "Error - Trouble removing user licenses." -ForegroundColor DarkRed
+        }
+#	7. Block Account on M365
+    Write-Host "Disabling account..." -ForegroundColor DarkYellow
+    Try{
+        Update-MgUser -UserID $userID -AccountEnabled:$false
+        Write-Host "Account sign-ins blocked. Off boarding complete.`n" -ForegroundColor DarkYellow
+        $offboardlog += "Account disabled. Off boarding completed."
+    }Catch{
+        Write-Host $_
+        Write-Host "Error - Could not disable user account.`n"
+        $offboardlog += "Could not diable account.`nOff boarding completed."
+    }
+    
+    $offboardlog += Get-Date
+    $offboardlog | Out-File -FilePath "C:\Temp\OffboardedUser.log" #create the log
+}
+
 function CrossCounterAddMember {
     param (
         $groupID
@@ -238,7 +349,8 @@ function CrossCounterEditUser {
 [1.] Edit User Profile
 [2.] Reset User Password
 [3.] TAP Into User Account
-[4.] Enable/Disable Account
+[4.] Enable/Disable Account Sign-in
+[5.] Off Board User
 [Q.] Go back
 "@ -ForegroundColor Yellow
 
@@ -357,12 +469,11 @@ function CrossCounterEditUser {
                 }Until($chosenOption -eq 'q')
                 Break
             }
-            2 { 
+            2 {  #Edit password
                 CrossCounterEditUserPassword -userID $userID
                 Break
             }
-            3 {
-                #TAP Account
+            3 { #TAP Account
                 Write-Host "Tapping Account..." -ForegroundColor DarkBlue
                 Try{
                     $TAP = New-MgUserAuthenticationTemporaryAccessPassMethod -UserID $UserID -IsUsableOnce -LifetimeInMinutes 60
@@ -380,8 +491,7 @@ function CrossCounterEditUser {
                 Write-Host
                 Break 
             }
-            4{
-                #enable/disable account
+            4{ #enable/disable account sign-in
                 if($accountEnabled){
                     Write-Host "Disabling account..." -ForegroundColor DarkYellow
                     Update-MgUser -UserID $userID -AccountEnabled:$false
@@ -389,6 +499,32 @@ function CrossCounterEditUser {
                     Write-Host "Re-enabling account..." -ForegroundColor DarkYellow
                     Update-MgUser -UserID $userID -AccountEnabled:$true
                 }
+                Break
+            }
+            5{ #OFF-BOARD USER
+                Write-Host @"
+|================================================================|
+|                     OFF BOARD USER                             |
+|================================================================|
+"@ -ForegroundColor Yellow
+                Write-Host "`nPlease note: the Graph API does not support Exchange admin actions.`nCrossCounter will pop a sign-in window for Exchange online." -ForegroundColor Yellow
+                Write-Host "Are you sure you want to offboard $($User.DisplayName)? (y/n)" -ForegroundColor DarkYellow
+                $confirm = Read-Host
+                Try {
+                    if ($confirm.toLower() -eq "y" ){
+                        if(-not (Get-Module ExchangeOnlineManagement -ListAvailable)){
+                            Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+                            Write-Host "`nLooks like you don't have the required module.`nAllow one moment to install (first time set-up)..." -ForegroundColor DarkRed
+                            Install-Module ExchangeOnlineManagement -Scope CurrentUser
+                        }
+                        Connect-ExchangeOnline
+                        CrossCounterOffboard -UserID $userID
+                    }
+                }Catch{
+                    Write-Host $_
+                    Write-Host "Error - Off boarding failed to complete properly" -ForegroundColor Red
+                }
+                Break
             }
             "q" {
                 Break
@@ -681,7 +817,7 @@ function CrossCounterSearch ($search){
 #
 Write-Host "Connecting... Sign into the popup window with your admin account."  -ForegroundColor Green
 # Login to Microsoft Admin with AAD Read/Write Permissions
-Connect-MgGraph -Scopes "User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","Policy.Read.All","Policy.ReadWrite.AuthenticationMethod","UserAuthenticationMethod.ReadWrite.All","Calendars.ReadWrite.Shared"
+Connect-MgGraph -Scopes "Organization.ReadWrite.All","User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","Policy.Read.All","Policy.ReadWrite.AuthenticationMethod","UserAuthenticationMethod.ReadWrite.All","Calendars.ReadWrite.Shared"
 #
 #================================================================================================================================================================================================================================================
 #================================================================================================================================================================================================================================================
