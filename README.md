@@ -20,6 +20,9 @@ At a glance:
 ## [Duais](./Duais/)
 *Duais* backs up a specified file in one location, and replaces it with another.
 
+## [Protectionist](./Protectionist/)
+*Protectionist* generates M365-friendly user passwords.
+
 ## [Still in Development:](./Dev/)
 
 #### **Alumandin**
