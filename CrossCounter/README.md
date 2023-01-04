@@ -2,7 +2,8 @@
 
 *Cross Counter* is for making fast changes to users in a Microsoft 365 tenant. It utilises the MgGraph powershell module. If you do not have this module, it will prompt you for install.
 
-A web browser will then be launched with a Microsoft login prompt. 
+A web browser will then be launched with a Microsoft login prompt.
+
 ## 'Main Menu' commands
 
 The `MAIN MENU` is the highest level menu in Cross Counter. Upon first singing into the tenant with Cross Counter, you are prompted with a fresh user list and this main menu.

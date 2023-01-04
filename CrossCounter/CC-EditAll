@@ -1,0 +1,117 @@
+<#
+    .SYNOPSIS
+    Edit ALL users in a tenant using graph.
+#>
+Do {
+        Write-Host "`n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" -ForegroundColor DarkRed
+        Write-Host " - WARNING - " -ForegroundColor Red
+        Write-Host "EDITING ** ALL ** USERS IN TENANT" -ForegroundColor Yellow
+        Write-Host ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" -ForegroundColor DarkRed
+        Write-Host @"
+[1.] Company Name            $($User.CompanyName)
+[2.] Department               $($User.Department)
+[3.] Street address           $($User.StreetAddress)
+[4.] City                     $($User.City)
+[5.] Postal Code              $($User.PostalCode)
+[6.] Country                 $($User.Country)
+"@
+        $chosenOption = Read-Host -Prompt "What would you like to change? (Input Number, or 'q' to go back)"
+        switch ($chosenOption) {
+            1 {
+                $i = 0
+                $editMade = Read-Host -Prompt "Change company name for ALL users to"
+                Do{
+                    Try{
+                        $User = $userList[($i)]
+                        $userID = $User.ID
+                        Update-MgUser -UserId $userID -CompanyName $editMade
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated" -ForegroundColor DarkGreen
+                    }Catch{
+                        Write-Host "$($i). ERROR" -ForegroundColor Red
+                    }
+                    $i++
+                }Until($i -ge ($userCount))
+            Break 
+            }
+            2 {
+                $i = 0
+                $editMade = Read-Host -Prompt "Change ALL users' Department to"
+                Do{
+                    Try{
+                        $User = $userList[($i)]
+                        $userID = $User.ID
+                        Update-MgUser -UserId $userID -Department $editMade
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"  -ForegroundColor DarkGreen
+                    }Catch{
+                        Write-Host "$($i). ERROR" -ForegroundColor Red
+                    }
+                    $i++
+                }Until($i -ge ($userCount))
+            Break
+            }
+            3 {
+                $i = 0
+                $editMade = Read-Host -Prompt "Change ALL users' Street Address to"
+                Do{
+                    Try{
+                        $User = $userList[($i)]
+                        $userID = $User.ID
+                        Update-MgUser -UserId $userID -StreetAddress $editMade
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"  -ForegroundColor DarkGreen
+                    }Catch{
+                        Write-Host "$($i). ERROR" -ForegroundColor Red
+                    }
+                    $i++
+                }Until($i -ge ($userCount))
+            Break
+            }
+            4 {
+                $i = 0
+                $editMade = Read-Host -Prompt "Change ALL users' City to"
+                Do{
+                    Try{
+                        $User = $userList[($i)]
+                        $userID = $User.ID
+                        Update-MgUser -UserId $userID -City $editMade
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"  -ForegroundColor DarkGreen
+                    }Catch{
+                        Write-Host "$($i). ERROR" -ForegroundColor Red
+                    }
+                    $i++
+                }Until($i -ge ($userCount))
+            Break
+            }
+            5 {
+                $i = 0
+                $editMade = Read-Host -Prompt "Change ALL users' Postal Code to"
+                Do{
+                    Try{
+                        $User = $userList[($i)]
+                        $userID = $User.ID
+                        Update-MgUser -UserId $userID -PostalCode $editMade
+                        Write-Host "$($i+1). $($userList[$i].DisplayName) - Updated"  -ForegroundColor DarkGreen
+                    }Catch{
+                        Write-Host "$($i). ERROR" -ForegroundColor Red
+                    }
+                    $i++
+                }Until($i -ge ($userCount))
+            Break
+            }
+            6 {
+                $i = 0
+                $editMade = Read-Host -Prompt "Change ALL users' Country to"
+                Do{
+                    Try{
+                        $User = $userList[($i)]
+                        $userID = $User.ID
+                        Update-MgUser -UserId $userID -Country $editMade
+                        Write-Host "$($i+1). editing $($userList[$i].DisplayName) - Updated"  -ForegroundColor DarkGreen
+                    }Catch{
+                        Write-Host "$($i). ERROR" -ForegroundColor Red
+                    }
+                    $i++
+                }Until($i -ge ($userCount))
+            Break
+            }
+        }
+    } Until ($chosenOption -eq 'q')
