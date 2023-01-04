@@ -122,6 +122,13 @@ function CrossCounterListMembers {
 function CrossCounterOffboard($UserID) {
     $User = Get-MgUser -UserId $UserID
     $offboardlog = "Off boarding $($User.DisplayName)`n" #we'll use this to create a log of the off boarding
+
+    Write-Host "Set the mailbox's auto reply for 'internal' messages (enter to skip)" -ForegroundColor Yellow
+    $internalMsg = Read-Host
+
+    Write-Host "Set the mailbox's auto reply for 'external' messages (enter to skip)" -ForegroundColor Yellow
+    $externalMsg = Read-Host
+
 #	1. Change M365 Password
     Write-Host "Resetting password..." -ForegroundColor DarkYellow
     Try{
@@ -147,13 +154,15 @@ function CrossCounterOffboard($UserID) {
     }
 #	3. Set Out of Office / Forwarding from shared mailbox
     Write-Host "Configuring auto-reply message..." -ForegroundColor DarkYellow
-    Write-Host "Set the mailbox's auto reply for 'internal' messages (enter to skip)" -ForegroundColor Yellow
-    $internalMsg = Read-Host
-    Write-Host "Set the mailbox's auto reply for 'external' messages (enter to skip)" -ForegroundColor Yellow
-    $externalMsg = Read-Host
-    if($internalMsg -eq "" -and $externalMsg-eq ""){
+    if($internalMsg -eq "" -and $externalMsg -eq ""){
         $AutoReplyState = "Disabled"
     }else{
+        if($internalMsg -eq ""){
+            $internalMsg = $externalMsg
+        }else{
+            if ($externalMsg -eq ""){
+                $externalMsg = $internalMsg
+        }}
         $AutoReplyState = "Enabled"
     }
     Set-MailboxAutoReplyConfiguration -Identity $exchangeUser -AutoReplyState $AutoReplyState -InternalMessage $internalMsg -ExternalMessage $externalMsg -ExternalAudience All
@@ -168,41 +177,48 @@ function CrossCounterOffboard($UserID) {
     Write-Host "Removing from M365 groups..." -ForegroundColor DarkYellow
     $groups = Get-MgUserMemberOf -UserID $userID -Count membershipCount -ConsistencyLevel eventual
     $groups = $groups.id
-    $i=0
-    Do{
-        $groupId = $groups[$i]
-        $groupName = (Get-MgGroup -GroupId $groupId).DisplayName
-        if($groupName -ne "All Users"){
+    if($groups.count -gt 1){
+        $i=0
+        Do{
+            $groupId = $groups[$i]
+            $groupName = (Get-MgGroup -GroupId $groupId).DisplayName
+            if($groupName -ne "All Users"){
+                Try{
+                    Write-Host "Removing from group - $($groupName)" -ForegroundColor DarkYellow
+                    $offboardlog += "`nRemoving from group - $($groupName)"
+                    Remove-MgGroupMemberByRef -GroupId $groupId -DirectoryObjectId $UserID 2> $null
+                }Catch{
+                    Write-Host $_
+                    $offboardlog += "Error removing from group - $($groupName)"
+                    Write-Host "Graph API Cannot Update a group with dynamic membership, a mail-enabled security group, or a distribution list." -ForegroundColor DarkRed
+                }
+            }
+            $i++
+        }Until($i -ge $groups.count)
+    #   Now do the same for distro lists
+        Write-Host "Removing from mail distribution groups..." -ForegroundColor DarkYellow
+        $offboardlog += "`nRemoving from mail distribution groups..."
+        $groups = Get-MgUserMemberOf -UserID $userID -Count membershipCount -ConsistencyLevel eventual
+        $groups = $groups.id
+        $i=0
+        Do{
             Try{
-                Write-Host "Removing from group - $($groupName)" -ForegroundColor DarkYellow
-                $offboardlog += "`nRemoving from group - $($groupName)"
-                Remove-MgGroupMemberByRef -GroupId $groupId -DirectoryObjectId $UserID 2> $null
+                $distroGroup = Get-DistributionGroup | Where-Object ExternalDirectoryObjectId -eq $groups[$i]
+                if($null -ne $distroGroup){
+                    Remove-DistributionGroupMember -Identity $distroGroup -Member $user.DisplayName -Confirm:$false
+                    Write-Host "Removing from $($distroGroup.name)"
+                    $offboardlog += "`n$($distroGroup.name)"
+                }
             }Catch{
                 Write-Host $_
-                $offboardlog += "Error removing from group - $($groupName)"
-                Write-Host "Graph API Cannot Update a group with dynamic membership, a mail-enabled security group, or a distribution list." -ForegroundColor DarkRed
+                $offboardlog += "`nError detected while removing from group."
             }
-        }
-        $i++
-    }Until($i -ge $groups.count)
-#   Now do the same for distro lists
-    Write-Host "Removing from mail distribution groups..." -ForegroundColor DarkYellow
-    $offboardlog += "`nRemoving from mail distribution groups..."
-    $groups = Get-MgUserMemberOf -UserID $userID -Count membershipCount -ConsistencyLevel eventual
-    $groups = $groups.id
-    $i=0
-    Do{
-        Try{
-            $distroGroup = Get-DistributionGroup | Where-Object ExternalDirectoryObjectId -eq $groups[$i]
-            Remove-DistributionGroupMember -Identity $distroGroup -Member $user.DisplayName -Confirm:$false
-            Write-Host "Removing from $($distroGroup.name)"
-            $offboardlog += "`n$($distroGroup.name)"
-        }Catch{
-            Write-Host $_
-            $offboardlog += "`nError detected while removing from group."
-        }
-        $i++
-    }Until($i -ge $groups.count)
+            $i++
+        }Until($i -ge $groups.count)
+    }else{
+        Write-Host "User is only in 1 group - $((Get-MgGroup -GroupId $groups).DisplayName)" -ForegroundColor DarkYellow
+        $offboardlog += "`nUser is only in 1 group - $((Get-MgGroup -GroupId $groups).DisplayName)"
+    }
 #	6. Remove License on M365
         Write-Host "Removing user licenses..." -ForegroundColor DarkYellow
         Try{
@@ -218,14 +234,14 @@ function CrossCounterOffboard($UserID) {
     Try{
         Update-MgUser -UserID $userID -AccountEnabled:$false
         Write-Host "Account sign-ins blocked. Off boarding complete.`n" -ForegroundColor DarkYellow
-        $offboardlog += "Account disabled. Off boarding completed."
+        $offboardlog += "`nAccount disabled. Off boarding completed."
     }Catch{
         Write-Host $_
         Write-Host "Error - Could not disable user account.`n"
-        $offboardlog += "Could not diable account.`nOff boarding completed."
+        $offboardlog += "`nCould not disable account.`nOff boarding completed."
     }
     
-    $offboardlog += Get-Date
+    $offboardlog += "`n$(Get-Date)"
     $offboardlog | Out-File -FilePath "C:\Temp\OffboardedUser.log" #create the log
 }
 
@@ -517,7 +533,7 @@ function CrossCounterEditUser {
                             Write-Host "`nLooks like you don't have the required module.`nAllow one moment to install (first time set-up)..." -ForegroundColor DarkRed
                             Install-Module ExchangeOnlineManagement -Scope CurrentUser
                         }
-                        Connect-ExchangeOnline
+                        Connect-ExchangeOnline -ShowBanner:$false
                         CrossCounterOffboard -UserID $userID
                     }
                 }Catch{
@@ -659,8 +675,8 @@ Upper-case letter, lower-case letter, number, symbol.
         if($newPass){
             Try {
                 Write-Host "Resetting password to $($newPass)" -ForegroundColor Blue
-                $authMethod = Get-MgUserAuthenticationMethod -UserId $userID
-                Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $newPass
+                #$authMethod = Get-MgUserAuthenticationMethod -UserId $userID
+                Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId "28c10230-6103-485e-b985-444c60001490" -NewPassword $newPass
                 Write-Host "   ------>        $($newPass)        <------" -ForegroundColor Cyan
                 Set-Clipboard -Value $newPass
                 Write-Host "Copied to clipboard." -ForegroundColor Blue
