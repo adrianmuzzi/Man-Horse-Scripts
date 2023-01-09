@@ -1,11 +1,11 @@
 <#Barclay McClay - 2022 #>
 # NOTE: ALWAYS USE THESE PASSWORDS WITH MFA/C.A.
-<#
+Write-Host @"
   _____   ______  _____  _______ _______ _______ _______ _____  _____  __   _ _____ _______ _______
  |_____] |_____/ |     |    |    |______ |          |      |   |     | | \  |   |   |______    |   
  |       |    \_ |_____|    |    |______ |_____     |    __|__ |_____| |  \_| __|__ ______|    |   
                                                                                                    
-#>
+"@ -ForegroundColor Cyan
 function Get-MnemonicWord {
 try {
         $WordListUri = "https://raw.githubusercontent.com/chelnak/MnemonicEncodingWordList/master/mnemonics.json"
