@@ -146,7 +146,7 @@ The ObjectID of the user you want to edit
                 Break
             }
             2 {  #Edit password
-                CrossCounterEditUserPassword -userID $userID
+                . $CrossCounterEditUserPassword -userID $userID
                 Break
             }
             3 { #TAP Account
