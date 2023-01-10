@@ -1,3 +1,7 @@
+<#
+    .SYNOPSIS
+    Launches a calendar form and returns the date input by the user (MM/dd/yyyy). Returns today's date by default.
+#>
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
@@ -6,7 +10,7 @@ $formHeight = 300
 $buttonHeight = 30
 $buttonWidth = 75
 
-$Global:SelectedDate = Get-Date -Format "dd/MM/yyyy"
+$Global:SelectedDate = Get-Date -Format "MM/dd/yyyy"
 
 # Form
 $form = New-Object System.Windows.Forms.Form -Property @{
@@ -63,7 +67,11 @@ $form.Controls.Add($objCalendar)
 $form.Controls.Add($objLabel)
 
 $result = $form.ShowDialog()
+#$form.ShowDialog()
 
-if ($result -eq [Windows.Forms.DialogResult]::OK) {
-    return $SelectedDate
-    }
+#if ($result -eq [Windows.Forms.DialogResult]::OK) {   (we comment out the 'if' condition because we need this to return a date or Maraboa will hang)
+    #return $SelectedDate returns the date formatted the correct way
+    #but the HaloAPI uses the *American* way (MM/dd/yyyy)and I can't for the life of me figure out how to change it without this jank:
+    $arr = $SelectedDate.Split("/")
+    return "$($arr[1])/$($arr[0])/$($arr[2])"
+#}

@@ -10,7 +10,7 @@ Write-Host "=========================================`n" -ForegroundColor DarkGr
 $profileList = Get-ChildItem -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data" | Select-Object Name | Where-Object name -like '*Profile *'
 Write-Host "$($profileList.count +1) Edge Profiles detected" -ForegroundColor Green
 
-$CCScript = $MyInvocation.MyCommand.Path | Split-Path -Parent | Split-Path -Parent  #path this script is being launched from
+$CCScript = $MyInvocation.MyCommand.Path | Split-Path -Parent | Split-Path -Parent
 $CCScript = $CCScript+"\CrossCounter\CrossCounter.ps1"
 
 ###########################################################################################################################################################################################
