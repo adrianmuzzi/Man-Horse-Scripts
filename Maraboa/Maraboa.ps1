@@ -11,9 +11,9 @@ Write-Host @"
 |  |\_   /|  ||___|  /  ||(_ o _) /   |___|  /  || |____/ / ;  \  '_ /  | :|___|  /  | 
 |  _( )_/ |  |   _.-    || (_,_).' __    _.-    ||   _ _ '. |  _ ,/ \ _/  |   _.-    | 
 | (_ o _) |  |.'   _    ||  |\ \  |  |.'   _    ||  ( ' )  \: (  '\_/ \   ;.'   _    | 
-|  (_,_)  |  ||  _( )_  ||  | \  '   /|  _( )_  || (_{;}_) | \  "/  \  ) / |  _( )_  | 
+|  (_,_)  |  ||  _( )_  ||  | \ \'   /|  _( )_  || (_ O _) | \  "/  \  ) / |  _( )_  | 
 |  |      |  |\ (_ o _) /|  |  \    / \ (_ o _) /|  (_,_)  /  '. \_/  ".'  \ (_ o _) / 
-'--'      '--' '.(_,_).' ''-'    '-'   '.(_,_).' /_______.'     '-----'     '.(_,_).'  
+'--'      '--' '.(_/_).' ''-'    '-'   '.(_\_).' /_______.'     '-----'     '.(_\_).'  
 "@ -ForegroundColor Magenta
 Write-Host "=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-==-=" -ForegroundColor DarkMagenta
 ##
@@ -120,7 +120,10 @@ function MaraboaTicketStats {
                     $dateSearch = 'lastactiondate'
                  }
             }
-            Get-HaloTicket -DateSearch $dateSearch -StartDate $dateStart -EndDate $dateEnd | Format-Table
+            $tickets = Get-HaloTicket -DateSearch $dateSearch -StartDate $dateStart -EndDate $dateEnd | Format-Table
+            Write-Host "There were $($tickets.count) $($searchClient) from $(formatDate($dateStart)), until $(formatDate($dateEnd))."
+            Write-Host ""
+            Write-Host ""
             break
         }
         default {

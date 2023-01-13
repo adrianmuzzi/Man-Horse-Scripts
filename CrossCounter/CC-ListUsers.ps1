@@ -11,10 +11,8 @@ param (
 )
     Write-Host @"
 ===============================================================================
-          ___  ___  __   __
-    |  | /__' |__  |__) /__' 
-    \__/ .__/ |___ |  \ .__/ 
-===============================================================================
+$($tenantName) Users
+===============================================================================`n"
 "@ -ForegroundColor Yellow
     $uL = Get-MgUser -All -Count userCount -ConsistencyLevel eventual -OrderBy DisplayName
     $i = 0
@@ -36,7 +34,6 @@ param (
         Write-Host "$($i+1). $($uL[$i].DisplayName)$($prop)"
         $i++
     }Until($i -ge ($userCount))
-    
     Write-Host "`n$userCount users - Listed alphabetically by display name" -ForegroundColor DarkGray
     Write-Host "Press < ALT + SPACE , E , F > to search within Powershell console" -ForegroundColor DarkGray
     return $uL

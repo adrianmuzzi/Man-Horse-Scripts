@@ -10,7 +10,10 @@ param (
 )
 
 $User = Get-MgUser -UserId $UserID
-$offboardlog = "Off boarding $($User.DisplayName)`n" #we'll use this to create a log of the off boarding
+$offboardlog = "Off boarding $($User.DisplayName)...`n" #we'll use this to create a log of the off boarding
+
+Write-Host "When removing user licenses, would you like CrossCounter to connect to Pax8 and decrement the tenant's corresponding license count?" -ForegroundColor Yellow
+$pax8opt = Read-Host -Prompt "(y/n)"
 
 Write-Host "Set the mailbox's auto reply for 'internal' messages (enter to skip)" -ForegroundColor Yellow
 $internalMsg = Read-Host
@@ -24,7 +27,6 @@ Try{
     $newPass = GeneratePassword -PWStrength 4
     $authMethod = Get-MgUserAuthenticationMethod -UserId $userID
     Reset-MgUserAuthenticationMethodPassword -UserId $userID -AuthenticationMethodId $authMethod.Id -NewPassword $newPass
-    $offboardlog += "`nUser password reset: $($newPass)"
 }Catch{
     $offboardlog += $_
     $offboardlog += "`nPassword reset failed."
@@ -61,7 +63,6 @@ $offboardlog += "`nExternal auto reply set to:`n$($externalMsg)"
 Write-Host "Hiding from Global Address List..." -ForegroundColor DarkYellow
 Set-Mailbox -Identity $exchangeUser -HiddenFromAddressListsEnabled $true
 $offboardlog += "`nUser removed from Global Address List"
-
 #	5. Remove from all M365 Groups
 Write-Host "Removing from M365 groups..." -ForegroundColor DarkYellow
 $groups = Get-MgUserMemberOf -UserID $userID -Count membershipCount -ConsistencyLevel eventual
@@ -111,6 +112,11 @@ if($groups.count -gt 1){
 #	6. Remove License on M365
     Write-Host "Removing user licenses..." -ForegroundColor DarkYellow
     Try{
+        if($pax8opt -eq 'y'){
+            
+        }else{
+
+        }
     $license = Get-MgSubscribedSku -All | Where-Object AppliesTo -eq 'User'
     Set-MgUserLicense -UserId $UserID -AddLicenses @() -RemoveLicenses @($license.SkuId)
     $offboardlog += "Licenses removed"

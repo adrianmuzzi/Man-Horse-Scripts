@@ -11,6 +11,12 @@ if(-not (Get-Module Microsoft.Graph -ListAvailable)){
     Write-Host "The system may ask you if you 'trust' this repository. Enter 'A' for 'Yes to All'."
     Install-Module Microsoft.Graph -Scope CurrentUser
 }
+if(-not (Get-Module pax8-api -ListAvailable)){
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+    Write-Host "`nLooks like you don't have the required module.`nAllow one moment to install (first time set-up)..." -ForegroundColor DarkRed
+    Write-Host "The system may ask you if you 'trust' this repository. Enter 'A' for 'Yes to All'."
+    Install-Module -Name 'Pax8-API' -Scope CurrentUser
+}
 # ==============================================================================
 #                             DEFINE FUNCTIONS
 # ==============================================================================
@@ -39,6 +45,8 @@ function GeneratePassword($PWStrength) {
         $pass += "$($n)"
     return $pass
 }
+
+$CrossCounterMatchPax8Tenant = "$($PSScriptRoot)\CC-ListUsers.ps1"
 
 $CrossCounterListUsers = "$($PSScriptRoot)\CC-ListUsers.ps1"
 
@@ -90,6 +98,12 @@ function CrossCounterSearch ($search){
 Write-Host "Connecting... Sign into the popup window with your admin account."  -ForegroundColor Green
 # Login to Microsoft Admin with AAD Read/Write Permissions
 Connect-MgGraph -Scopes "Organization.ReadWrite.All","User.ReadWrite.All","Group.ReadWrite.All","RoleManagement.ReadWrite.Directory","GroupMember.ReadWrite.All","Directory.ReadWrite.All","Directory.ReadWrite.All","Policy.Read.All","Policy.ReadWrite.AuthenticationMethod","UserAuthenticationMethod.ReadWrite.All","Calendars.ReadWrite.Shared"
+#Get the Tenant ID
+$tenantID = Invoke-GraphRequest -Uri "https://graph.microsoft.com/v1.0/organization" 
+$tenantID = $tenantID.Value
+$tenantName =  $tenantID.displayName
+$tenantID = $tenantID.id
+Write-Host "CrossCounter has sucessfully integrated with $($tenantName)" -ForegroundColor Green
 #
 #================================================================================================================================================================================================================================================
 #================================================================================================================================================================================================================================================
@@ -98,7 +112,7 @@ Connect-MgGraph -Scopes "Organization.ReadWrite.All","User.ReadWrite.All","Group
 #                           FIRST STARTUP
 #----------------------------------------------------------------------------------
 # List all the users in the tenant
-$userList = . $CrossCounterListUsers
+$userList = . $CrossCounterListUsers -Property "email"
 
 # MAIN MENU ++++++++++++++++++++++++++++++++++++++++++++++++++++++|
 Do {
