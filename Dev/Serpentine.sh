@@ -2,16 +2,21 @@
 GREEN='\033[0;32m'
 NOCOLOR='\033[0m'
 echo -e "${GREEN}Running SERPENTINE${NOCOLOR}"
+system_profiler SPSoftwareDataType SPHardwareDataType
 export HISTIGNORE='*sudo -S*' #make sure we dont save the password in ~/.bash_history
 export HISTIGNORE='*admin_pass*' #make sure we dont save the password in ~/.bash_history
-read -p "Enter local admin password:" admin_pass
-
-#export HISTIGNORE='*sudo -S*' #make sure we dont save the password in ~/.bash_history
-if open -Ra "/Applications/Google Chrome.app"; then
-    echo "Google Chrome is already installed on this Mac"
+#echo "Enter your local user password:"
+#read -r admin_pass
+#echo "${admin_pass}" | sudo -S -k <do thing>
+installed_apps=$(mdfind "kMDItemKind == 'Application'")
+if [[ "$installed_apps" == *"Google Chrome"* ]]; then
+    echo -e "${GREEN}Google Chrome was already detected on this system.${NOCOLOR}"
 else
-    echo "Downloading and installing Google Chrome..."
+    if [ ! -d ~/Downloads/Serpentine/ ]; then
+        mkdir ~/Downloads/Serpentine/
+    fi
     #install Chrome (checking which version is appropriate for Apple or Intel chipset)
+    echo "Downloading and installing Google Chrome..."
     if
                 [[ $(arch) == arm64 ]]; then
                 echo "Architecture is Apple ARM"
@@ -20,9 +25,14 @@ else
                 echo "Architecture is Intel X86"
                 curl https://dl.google.com/chrome/mac/universal/stable/GGRO/googlechrome.dmg --output ~/Downloads/Serpentine/googlechrome.dmg
             fi
-
-    open ~/Downloads/Serpentine/googlechrome.dmg
-    echo admin_pass | sudo -S -k cp -r /Volumes/Google\ Chrome/Google\ Chrome.app /Applications/
+    #install chrome from the downloaded .dmg
+    yes | hdiutil attach -noverify -nobrowse -mountpoint ~/Downloads/Serpentine/mount ~/Downloads/Serpentine/googlechrome.dmg
+    cp -r ~/Downloads/Serpentine/mount/*.app /Applications
+    hdiutil detach ~/Downloads/Serpentine/mount
+    rm -r ~/Downloads/Serpentine
     open /Applications
 fi
-echo "Chrome install complete."
+echo -e "${GREEN}Chrome Install Complete.${NOCOLOR}"
+
+echo "User's Microsoft Portal opening in Chrome..."
+open -a "Google Chrome" https://portal.office.com
