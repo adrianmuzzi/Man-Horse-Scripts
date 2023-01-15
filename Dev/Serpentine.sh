@@ -6,8 +6,11 @@ echo -e "${GREEN}Running SERPENTINE${NOCOLOR}"
   if
             [[ $(arch) == arm64 ]]; then
             echo "Architecture is Apple ARM"
-            curl https://dl.google.com/chrome/mac/universal/stable/GGRO/googlechrome.dmg --output googlechrome.dmg
+            curl https://dl.google.com/chrome/mac/universal/stable/GGRO/googlechrome.dmg --output ~/Downloads/googlechrome.dmg
         else
             echo "Architecture is Intel X86"
-            curl https://dl.google.com/chrome/mac/stable/GGRO/googlechrome.dmg --output googlechrome.dmg
+            curl https://dl.google.com/chrome/mac/stable/GGRO/googlechrome.dmg --output ~/Downloads/googlechrome.dmg
         fi
+
+open ~/Downloads/googlechrome.dmg
+sudo cp -r /Volumes/Google\ Chrome/Google\ Chrome.app /Applications/
