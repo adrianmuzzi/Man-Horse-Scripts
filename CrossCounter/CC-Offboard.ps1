@@ -113,7 +113,8 @@ if($groups.count -gt 1){
     Write-Host "Removing user licenses..." -ForegroundColor DarkYellow
     Try{
         if($pax8opt -eq 'y'){
-            
+            Write-Host "Integrating with Pax8..." -ForegroundColor DarkYellow
+            $Pax8Tenant = . $CrossCounterMatchPax8Tenant
         }else{
 
         }

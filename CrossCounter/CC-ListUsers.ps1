@@ -5,28 +5,51 @@
     .PARAMETER property
     Can be "email", "mobile" or "jobTitle" 
 #>
-param (
-    # What we want listed next to the name
-    [string]$property = ""
-)
+Do {
+    Write-Host @"
+|======================================|
+LIST USERS                
+[1.] Name only                             
+[2.] Name + Email                   
+[3.] Name + Mobile Phone     
+[4.] Name + Job Title
+[5.] Name + License(s)
+[Q.] Go back               
+|======================================|
+"@ -ForegroundColor Yellow
+    $newUserOpt = Read-Host
+    if($newUserOpt -eq 'q'){
+        return
+    }
+}Until($newUserOpt)
+
     Write-Host @"
 ===============================================================================
 $($tenantName) Users
-===============================================================================`n"
+===============================================================================`n
 "@ -ForegroundColor Yellow
     $uL = Get-MgUser -All -Count userCount -ConsistencyLevel eventual -OrderBy DisplayName
     $i = 0
     Do{
-        switch($property){
-            "email" {
+        switch($newUserOpt){
+            2 {
                 $prop = " - $($uL[$i].Mail)"
             }
-            "mobile" {
+            3 {
                 $prop = " - $($uL[$i].MobilePhone)"
             }
-            "jobTitle" {
+            4 {
                 $prop = " - $($uL[$i].JobTitle)"
             }
+            <#5 { #to be changed
+                $SKUS = Get-MgSubscribedSku -UserID $uL[$i].Id
+                $ii = 0
+                Do {
+                    . $CrossCounterSkuToProduct
+                    $ii++
+                }Until($ii -ge $SKUS.count)
+                $prop = " - $($uL[$i].JobTitle)"
+            }#>
             default {
                 $prop = ""
             }

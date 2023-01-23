@@ -138,7 +138,8 @@ function AcrasiaShortcuts {
                     Write-Host "CrossCounter is not present at the expected directory:`n$($CCScript)`n" -ForegroundColor DarkGray
                 }
             }Catch{
-                Write-Host "CrossCounter Failed..." -ForegroundColor Red
+                Write-Host $_ -ForegroundColor DarkRed
+                Write-Host "An unexpected error has caused CrossCounter to fail..." -ForegroundColor Red
                 $CCScript
             }
         }

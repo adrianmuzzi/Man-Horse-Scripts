@@ -46,7 +46,9 @@ function GeneratePassword($PWStrength) {
     return $pass
 }
 
-$CrossCounterMatchPax8Tenant = "$($PSScriptRoot)\CC-ListUsers.ps1"
+$CrossCounterSkuToProduct = "$($PSScriptRoot)\CC-SkuToProduct.ps1"
+
+$CrossCounterMatchPax8Tenant = "$($PSScriptRoot)\CC-MatchPax8Tenant.ps1"
 
 $CrossCounterListUsers = "$($PSScriptRoot)\CC-ListUsers.ps1"
 
@@ -108,11 +110,24 @@ Write-Host "CrossCounter has sucessfully integrated with $($tenantName)" -Foregr
 #================================================================================================================================================================================================================================================
 #================================================================================================================================================================================================================================================
 #================================================================================================================================================================================================================================================
+
 #----------------------------------------------------------------------------------
 #                           FIRST STARTUP
 #----------------------------------------------------------------------------------
 # List all the users in the tenant
-$userList = . $CrossCounterListUsers -Property "email"
+Write-Host @"
+===============================================================================
+$($tenantName) Users
+===============================================================================`n"
+"@ -ForegroundColor Yellow
+    $userList = Get-MgUser -All -Count userCount -ConsistencyLevel eventual -OrderBy DisplayName
+    $i = 0
+    Do{
+        Write-Host "$($i+1). $($userList[$i].DisplayName) - $($userList[$i].Mail)"
+        $i++
+    }Until($i -ge ($userCount))
+    Write-Host "`n$userCount users - Listed alphabetically by display name" -ForegroundColor DarkGray
+    Write-Host "Press < ALT + SPACE , E , F > to search within Powershell console" -ForegroundColor DarkGray
 
 # MAIN MENU ++++++++++++++++++++++++++++++++++++++++++++++++++++++|
 Do {
@@ -218,39 +233,7 @@ Do {
         }
 #Input 'users' to re-list all the users in the tenant
         'users' {
-            Do {
-                Write-Host @"
-|======================================|
-            LIST USERS                
-[1.] Name only                             
-[2.] Name + Email                   
-[3.] Name + Mobile Phone     
-[4.] Name + Job Title               
-|======================================|
-"@ -ForegroundColor Yellow
-                $newUserOpt = Read-Host
-                switch($newUserOpt){
-                    1{
-                        $userList = . $CrossCounterListUsers
-                    }
-                    2{
-                        $userList = . $CrossCounterListUsers -Property "email"
-                    }
-                    3{
-                        $userList = . $CrossCounterListUsers -Property "mobile"
-                    }
-                    4{
-                        $userList = . $CrossCounterListUsers -Property "jobTitle"
-                    }
-                    'q' {
-                        Break
-                    }
-                    default{
-                        $userList = . $CrossCounterListUsers
-                    }
-                }
-            }Until($newUserOpt)
-
+           $userList = . $CrossCounterListUsers
         }
 
 # q to exit
