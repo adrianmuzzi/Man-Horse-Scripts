@@ -17,21 +17,21 @@ LIST USERS
 [Q.] Go back               
 |======================================|
 "@ -ForegroundColor Yellow
-    $newUserOpt = Read-Host
-    if($newUserOpt -eq 'q'){
+    $listUserOpt = Read-Host
+    if($listUserOpt -eq 'q'){
         return
     }
-}Until($newUserOpt)
+}Until($listUserOpt)
 
     Write-Host @"
-===============================================================================
+==================================================================
 $($tenantName) Users
-===============================================================================`n
+==================================================================`n
 "@ -ForegroundColor Yellow
     $uL = Get-MgUser -All -Count userCount -ConsistencyLevel eventual -OrderBy DisplayName
     $i = 0
     Do{
-        switch($newUserOpt){
+        switch($listUserOpt){
             2 {
                 $prop = " - $($uL[$i].Mail)"
             }
@@ -41,15 +41,20 @@ $($tenantName) Users
             4 {
                 $prop = " - $($uL[$i].JobTitle)"
             }
-            <#5 { #to be changed
-                $SKUS = Get-MgSubscribedSku -UserID $uL[$i].Id
-                $ii = 0
-                Do {
-                    . $CrossCounterSkuToProduct
-                    $ii++
-                }Until($ii -ge $SKUS.count)
-                $prop = " - $($uL[$i].JobTitle)"
-            }#>
+            5 { #to be changed
+                $SKUS = Get-MgUserLicenseDetail -UserID $uL[$i].Id
+                $prop = " - "
+                if($SKUS.count -gt 1){
+                    $ii = 0
+                    Do{
+                        $prop += ", " 
+                        $prop += . $CrossCounterSkuToProduct -SKU $SKUS[$ii].SkuId
+                        $ii++
+                    }Until($ii -ge $SKUS.count)
+                }else{
+                    $prop += . $CrossCounterSkuToProduct -SKU $SKUS.SkuId
+                }
+            }
             default {
                 $prop = ""
             }

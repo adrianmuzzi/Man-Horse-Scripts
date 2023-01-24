@@ -116,9 +116,9 @@ Write-Host "CrossCounter has sucessfully integrated with $($tenantName)" -Foregr
 #----------------------------------------------------------------------------------
 # List all the users in the tenant
 Write-Host @"
-===============================================================================
+==================================================================
 $($tenantName) Users
-===============================================================================`n"
+==================================================================`n
 "@ -ForegroundColor Yellow
     $userList = Get-MgUser -All -Count userCount -ConsistencyLevel eventual -OrderBy DisplayName
     $i = 0
@@ -281,11 +281,13 @@ Disconnect-MgGraph
 exit
 #########################################################################################################################################
 #VS Code shows these variables as "assigned but never used" because they only appear in dot referenced scripts and not this main index.
-#this appears to call the variables so that VS code doesn't show the error (just comment it out and you'll see what I mean)
+#This impossible if statement appears to call the variables so that VS code doesn't show the error (just comment it out and you'll see what I mean)
 if(1 -ge 2){
     $CrossCounterOffboard
     $CrossCounterEditUserMail
     $CrossCounterEditUserPassword
+    $CrossCounterSkuToProduct
+    $CrossCounterMatchPax8Tenant
 }
 #########################################################################################################################################
 #

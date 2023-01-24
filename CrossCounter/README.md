@@ -23,9 +23,7 @@ Leads to the *Groups* menu.
 Leads to the *New User* menu.
 
 - ### users
-This refreshes and re-displays the user list. Note that if changes are made to a user's display name- this may lead to changes in the list ordering (as it is organised alphabetically). Whenever you select a user from the user list,  the 'number' you input to do so is always relevant to the most recent time the user list has been refreshed and displayed.
-
-This can also be used to quickly see which users have mobile numbers/mail addresses attached to their profiles.
+Leads to the *List Users* menu.
 
 - ### q
 'q' In the main menu will sign out of MgGraph and exit powershell.
@@ -41,7 +39,7 @@ This menu allows for quick changes to a chosen user in the tenant.
 - [4.] Enable/Disable Account
   - This will toggle "sign-in enabled" for the selected user's account.
 - [5.] Off board user
-  - This will connect to the ExchangeOnline module and run the user through an automated off boarding script.
+  - This will run the user through an automated off boarding script.
 - [Q.] Go back
 
 ### *Edit User Profile:*
@@ -105,6 +103,16 @@ Returns to *Groups Menu*
 *CURRENTLY IN DEVELOPMENT*
 
 The `NEW USER` Menu is for on boarding a new user into the tenant. Azure AD/M365 Admin portals do not let you 'copy' an existing user the same way Active Directory does.
+
+## 'List Users' Menu
+This refreshes and re-displays the user list. Note that if changes are made to a user's display name- this may lead to changes in the list ordering (as it is organised alphabetically). Whenever you select a user from the user list,  the 'number' you input to do so is always relevant to the most recent time the user list has been refreshed and displayed.
+
+This menu lets you list users by:
+- [1] Name only
+- [2] Name + Email
+- [3] Name + Mobile Phone
+- [4] Name + Job Title
+- [5] Name + License(s)
 
 ## More info:
 

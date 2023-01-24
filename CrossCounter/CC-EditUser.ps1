@@ -11,9 +11,9 @@ The ObjectID of the user you want to edit
 
     Do {
         $User = Get-MgUser -UserId $userID
-        Write-Host "=================================================================================================" -ForegroundColor DarkYellow
+        Write-Host "==================================================================" -ForegroundColor DarkYellow
         Write-Host "Editing $($User.DisplayName)    $($User.Mail)" -ForegroundColor Yellow
-        Write-Host "=================================================================================================" -ForegroundColor DarkYellow
+        Write-Host "==================================================================" -ForegroundColor DarkYellow
         $blocklist = Get-Mguser -Filter "accountEnabled eq false" #check if account is sign-in blocked
         if($blocklist.Id.Contains($userID)){
             Write-Host "USER ACCOUNT IS DISABLED" -ForegroundColor Red

@@ -58,7 +58,13 @@ switch($SKU) {
     "1fc08a02-8b3d-43b9-831e-f76859e04e1a" {
         return "Microsoft 365 Apps for enterprise (OFFICESUBSCRIPTION)"
     }
+    "f30db892-07e9-47e9-837c-80727f46fd3d" {
+        return "Microsoft Flow Free	(FLOW_FREE)"
+    }
+    "90d8b3f8-712e-4f7b-aa1e-62e7ae6cbe96" {
+        return "Business Apps (free) (SMB_APPS)"
+    }
     default{
-        return "Sorry- no matching product for $($SKU)"
+        return $SKU
     }
 }
