@@ -135,6 +135,78 @@ function MaraboaTicketStats {
 }Until($tsOpt1 -eq 'q')
 
 }
+
+#TICKET SEARCH
+function findTicket {
+    #List potential filters > feed into Get-HaloTicket, return ticket IDs, offer to open in browser.
+    Write-Host @"
++--------------------------------------------+
+|               TICKET SEARCH                |
++--------------------------------------------+`n
+"@ -ForegroundColor Magenta
+    Write-Host "Available Filters, select to apply:
+    `n[1] Client"
+    $filterOpt1 = Read-Host
+    
+    switch ($filterOpt1) {
+        '1' { #apply client filter
+            Write-Host "Specify a client by number, name or partial name. Enter q to go back."
+            $clientList = @(Get-HaloClient | Select-Object name) #capture client names in an array and display        
+            $i = 0
+            Do{
+                Write-Host "$($i+1). $($clientList[$i].name)"
+                $i++     
+            }Until($i -ge $clientList.count)
+            $clientOpt = Read-Host
+                switch ($clientOpt) {
+                    'q' {
+                        break
+                    }
+                    default {
+                        Try {   #test for integer inputs
+                            if (($clientList.count -ge $clientOpt) -and ($clientOpt -gt 0)) {
+                                $selectedClient = $clientList[$clientOpt - 1]
+                                Write-Host "Client Selected: $($selectedClient.Name)"
+                            }
+                            else {
+                            Write-Host ("Enter a number between 1 and $($clientList.count)")
+                            }
+                        } Catch {   #test for text inputs
+                            $selectedClient = search -searchType "client" -searchValue $clientOpt -searchData $clientList
+                            Write-Host $selectedClient
+                        }
+                        
+                    
+                        break
+                    }
+                }
+            }
+    }
+    #Open ticket in Edge - URL to call: https://$($hURL)/ticket?id=$($ticketID)&showmenu=false
+}
+
+function search ($searchType, $searchValue, $searchData) {
+    $result = $searchData.name.ToLower() | ForEach-Object { if($_.contains($searchValue.ToLower())){$_} }
+    Try {
+        if ($result.count -gt 1) {
+            Write-Host "$($result.count) matches found."
+            $i=0
+            Do {
+                Write-Host "$($result[$i].name)"
+                $i++
+            } Until($i -eq $result.count)
+        } else {
+            if($searchData.name.ToLower().contains($result.ToLower())){
+                return $searchData | Where-Object {$_.name.ToLower() -contains $result.ToLower()}
+                }
+        } else {
+            return "No relevant $($searchType) entry found. Try again."
+        }
+    } Catch {
+        return "No relevant $($searchType) entry found. Try again."
+    }
+}
+
 ################################# CONNECT TO HALO API ##########################################
 Try {
     $config = $MyInvocation.MyCommand.Path | Split-Path -Parent | Split-Path -Parent
@@ -151,6 +223,7 @@ Connect-HaloAPI -URL $hURL -ClientID $hID -ClientSecret $hSecret
 Do {
     Write-Host @"
 [T] Ticket Stats
+[S] Ticket Search
 [?] Display help
 [Q] Quit
 "@ -ForegroundColor Cyan
@@ -167,6 +240,10 @@ It is a script for scraping data from the HaloPSA API.
     }
     't' {
         MaraboaTicketStats
+        break
+    }
+    's' {
+        findTicket
         break
     }
     'q'
