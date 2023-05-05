@@ -15,22 +15,7 @@ $CCScript = $CCScript+"\CrossCounter\CrossCounter.ps1"
 
 ###########################################################################################################################################################################################
 
-function AcrasiaSetup {
-    $regProfiles = reg query HKEY_CURRENT_USER\Software\Microsoft\Edge\Profiles /s /v ShortcutName
-    #regProfiles[0] is a blank line and $regprofiles[$regprofiles.count-1] is "End of search: x match(es) found."
-    $i = 1
-    $outputData = ""
-    Do {
-        if($i -gt 1) {$outputData += "`n"}
-        $pName = $regprofiles[$i].replace("HKEY_CURRENT_USER\Software\Microsoft\Edge\Profiles\","")
-        $nName = $regProfiles[$i+1].replace("    ShortcutName    REG_SZ    ","")
-        $outputData += "$($pName)=$($nName)"
-        $i+=3
-    } Until ($i -ge $regprofiles.count-1)
-        $outputData | Out-File -FilePath "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt"
-        $outFile = ConvertFrom-StringData -StringData $outputData
-        return $outFile
-}
+$AcrasiaSetup = "$($PSScriptRoot)\ACRASIA-Setup.ps1"
 
 function AcrasiaRename ($renameProfile,$NewName) {
     $i = 0
@@ -93,6 +78,7 @@ function AcrasiaShortcuts {
     Write-Host "[4.] MEM / Intune" -ForegroundColor Green   #https://endpoint.microsoft.com/#home
     Write-Host "[5.] Office 365 Portal" -ForegroundColor Green     #https://portal.office.com
     Write-Host "[6.] MS Portals" -ForegroundColor Green     #https://msportals.io/?search='
+    Write-Host "[7.] Sharepoint Admin Center" -ForegroundColor Green     #https://admin.microsoft.com/sharepoint
     Write-Host "[B.] Profile Bookmarks" -ForegroundColor DarkGreen
     Write-Host "[C.] CrossCounter" -ForegroundColor DarkGreen
     Write-Host "[R.] Rename Profile" -ForegroundColor DarkGreen
@@ -107,6 +93,7 @@ function AcrasiaShortcuts {
         4   {$link = "https://endpoint.microsoft.com/#home" }
         5   {$link = "https://portal.office.com" }
         6   {$link = "https://msportals.io/?search=" }
+        7   {$link = "https://admin.microsoft.com/sharepoint" }
         "b" { #Bookmarks
             $bk = AcrasiaGetBookmarks -ProfileKey $selectedProfile
             $i=0
@@ -201,12 +188,12 @@ if(Test-Path -Path "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.t
         Write-Host "Acrasia has detected changes in your Edge profiles since last setup." -ForegroundColor Yellow
         Write-Host "There are $($profileList.count+1) Edge Profiles, but Acrasia has $($AcrasiaProfiles.count) in its records." -ForegroundColor Yellow
         Write-Host "Re-syncing $($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt" -ForegroundColor DarkGray
-        $AcrasiaProfiles = AcrasiaSetup
+        $AcrasiaProfiles = . $AcrasiaSetup
     }
 }else{
     Write-Host "It looks like you do not have any Acrasia Data..." -ForegroundColor Yellow
     Write-Host "Creating file at: $($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt" -ForegroundColor DarkGray
-    $AcrasiaProfiles = AcrasiaSetup
+    $AcrasiaProfiles = . $AcrasiaSetup
 }
     
 Do{
@@ -222,7 +209,7 @@ Do{
     switch ($opt1) {
         "setup" {
             Write-Host "Re-syncing $($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt" -ForegroundColor DarkGray
-            $AcrasiaProfiles = AcrasiaSetup
+            $AcrasiaProfiles = . $AcrasiaSetup
             Write-Host "Opening file..." -ForegroundColor DarkGray
             & "$($env:LOCALAPPDATA)\Microsoft\Edge\User Data\_AcrasiaData.txt"
             break

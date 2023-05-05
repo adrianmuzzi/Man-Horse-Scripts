@@ -1,0 +1,19 @@
+{
+  "name": "NewHaven",
+  "version": "0.0.0.1",
+  "manifest_version": 3,
+  "description": "An aid for tech-desks using Edge.",
+  "permissions": ["tabs"],
+  
+  "icons": {
+    "16": "icons/jit16.png",
+    "32": "icons/jit32.png",
+    "48": "icons/jit64.png",
+    "128": "icons/jit128.png"
+  },
+  
+  "action": {
+    "default_popup": "/popup.html"
+  }
+}
+

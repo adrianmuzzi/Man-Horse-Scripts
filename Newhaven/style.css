@@ -1,0 +1,56 @@
+/*
+Colors:
+Jinba Orange: #F7931E;
+Jinba Teal: #00BAC6;
+White #ffffff
+Bg White #f3f3f4
+Jinba Orange #f79523
+Jinba Blue #00aced
+Jinba Purple #bd8cbf
+Jinba Deep Blue #007bb6
+Jinba Navy #3b5998
+*/
+
+/**********************************************************************************/
+
+body {
+    width: max-content;
+    color: #333333;
+    background-color: #f3f3f4;
+    font-family:Arial, Helvetica, sans-serif
+}
+
+/**********************************************************************************/
+
+/**********************************************************************************/
+/* Links */
+/**********************************************************************************/
+
+.topLink {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: #fe9b3d;
+    border-radius: 5px;
+    color: #ffffff;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.1s ease-in-out;
+}
+/* unvisited link */
+.topLink:link {
+    color: #ffffff;
+}
+/* mouse over link */
+.topLink:hover {
+    background-color: #00aced;
+    transform: scale(1.05);
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+}
+/* selected link */
+.topLink:active {
+    color: #f7931e;
+    background-color: #ffffff;
+}
+
+/**********************************************************************************/
